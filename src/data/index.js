@@ -165,3 +165,181 @@ export async function fetchDashboardStats() {
     recentOrders: orders.slice(0, 5),
   }
 }
+// ── Product Management ────────────────────────────────────
+
+export async function createProduct(productData) {
+  const { error } = await supabase
+    .from('products')
+    .insert(productData)
+
+  if (error) throw error
+}
+
+export async function updateProduct(productId, updates) {
+  const { error } = await supabase
+    .from('products')
+    .update(updates)
+    .eq('id', productId)
+
+  if (error) throw error
+}
+
+export async function deleteProduct(productId) {
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', productId)
+
+  if (error) throw error
+}
+
+// ── Customer Management ────────────────────────────────────
+
+export async function createCustomer(customerData) {
+  const { error } = await supabase
+    .from('customers')
+    .insert({
+      ...customerData,
+      id: crypto.randomUUID(),
+      joined: new Date().toISOString(),
+      status: 'Active',
+    })
+
+  if (error) throw error
+}
+
+export async function updateCustomer(customerId, updates) {
+  const { error } = await supabase
+    .from('customers')
+    .update(updates)
+    .eq('id', customerId)
+
+  if (error) throw error
+}
+
+export async function deleteCustomer(customerId) {
+  const { error } = await supabase
+    .from('customers')
+    .delete()
+    .eq('id', customerId)
+
+  if (error) throw error
+}
+
+// ── Promo Codes ───────────────────────────────────────────
+
+export async function validatePromoCode(code) {
+  const { data, error } = await supabase
+    .from('promo_codes')
+    .select('*')
+    .eq('code', code.toUpperCase())
+    .single()
+
+  if (error || !data) throw new Error('Invalid promo code')
+
+  // Check if expired
+  if (data.expires_at && new Date(data.expires_at) < new Date()) {
+    throw new Error('Promo code has expired')
+  }
+
+  // Check max uses
+  if (data.max_uses && data.times_used >= data.max_uses) {
+    throw new Error('Promo code limit reached')
+  }
+
+  return data
+}
+
+export async function incrementPromoUse(code) {
+  const { error } = await supabase.rpc('increment_promo_use', { promo_code: code })
+  if (error) console.error('Failed to increment promo use:', error)
+}
+
+// ── Reviews ───────────────────────────────────────────────
+
+export async function fetchReviews(productId) {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*, customers(name, initials, color)')
+    .eq('product_id', productId)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function createReview({ productId, rating, title, comment }) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Must be logged in to review')
+
+  const { error } = await supabase
+    .from('reviews')
+    .insert({
+      product_id: productId,
+      customer_id: user.id,
+      rating,
+      title,
+      comment,
+    })
+
+  if (error) throw error
+}
+
+// ── Wishlist ──────────────────────────────────────────────
+
+export async function fetchWishlist() {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('wishlist')
+    .select('*, products(*)')
+    .eq('customer_id', user.id)
+
+  if (error) throw error
+  return data || []
+}
+
+export async function addToWishlist(productId) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Must be logged in')
+
+  const { error } = await supabase
+    .from('wishlist')
+    .insert({ customer_id: user.id, product_id: productId })
+
+  if (error) throw error
+}
+
+export async function removeFromWishlist(productId) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { error } = await supabase
+    .from('wishlist')
+    .delete()
+    .eq('customer_id', user.id)
+    .eq('product_id', productId)
+
+  if (error) throw error
+}
+
+// ── Export CSV ────────────────────────────────────────────
+
+export function exportToCSV(data, filename) {
+  if (!data.length) return
+
+  const headers = Object.keys(data[0])
+  const csv = [
+    headers.join(','),
+    ...data.map(row => headers.map(h => JSON.stringify(row[h] ?? '')).join(','))
+  ].join('\n')
+
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}

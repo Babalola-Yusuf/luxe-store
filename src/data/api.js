@@ -1,1 +1,1 @@
-export { fetchProducts, placeOrder, fetchOrders, updateOrderStatus, fetchDashboardStats, fetchCustomers, createPaymentIntent } from './index'
+export { fetchProducts, placeOrder, fetchOrders, updateOrderStatus, fetchDashboardStats, fetchCustomers, deleteCustomer, updateCustomer, createPaymentIntent, createProduct, createCustomer, updateProduct, deleteProduct, validatePromoCode } from './index'
