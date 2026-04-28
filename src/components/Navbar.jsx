@@ -49,6 +49,24 @@ export default function Navbar({ view, setView, session }) {
           </button>
         )}
 
+        {session && !isAdmin && (
+          <button
+            onClick={() => setView('wishlist')}
+            className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm transition-all
+              ${view === 'wishlist' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+          >
+            ❤️ Wishlist
+          </button>
+        )}
+
+        <button
+          onClick={() => setView('track-order')}
+          className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm transition-all
+            ${view === 'track-order' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'}`}
+        >
+          Track Order
+        </button>
+
         <button
           onClick={() => setView('admin')}
           className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm transition-all

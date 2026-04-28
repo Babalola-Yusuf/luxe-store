@@ -10,6 +10,8 @@ export default function Orders() {
   const [search, setSearch]       = useState('')
   const [statusFilter, setStatus] = useState('')
   const [updating, setUpdating]   = useState(null)
+  const [trackingModal, setTrackingModal] = useState(null)
+  const [trackingNumber, setTrackingNumber] = useState('')
 
   useEffect(() => {
     load()
@@ -24,6 +26,21 @@ export default function Orders() {
       setLoading(false)
     }
   }
+  async function handleUpdateTracking(orderId) {
+  if (!trackingNumber) return
+  try {
+    await supabase
+      .from('orders')
+      .update({ tracking_number: trackingNumber })
+      .eq('id', orderId)
+    
+    setTrackingModal(null)
+    setTrackingNumber('')
+    load()
+  } catch (err) {
+    alert('Error: ' + err.message)
+  }
+}
 
   async function handleStatusChange(orderId, newStatus) {
     setUpdating(orderId)
@@ -78,7 +95,7 @@ export default function Orders() {
           <table className="w-full text-xs min-w-[580px]">
             <thead>
               <tr className="border-b border-border">
-                {['Order ID', 'Total', 'Status', 'Date', 'Update Status'].map(h => (
+                {['Order ID', 'Total', 'Status', 'Tracking', 'Date', 'Update Status'].map(h => (
                   <th key={h} className="px-4 py-2.5 text-left text-[11px] text-muted uppercase tracking-wide font-medium whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -117,11 +134,68 @@ export default function Orders() {
                         {STATUSES.map(s => <option key={s}>{s}</option>)}
                       </select>
                     </td>
+                      <td className="px-4 py-2.5">
+                      {o.tracking_number ? (
+                        <div className="text-xs">
+                          <p className="font-mono text-brand">{o.tracking_number}</p>
+                          <button
+                            onClick={() => {
+                              setTrackingModal(o.id)
+                              setTrackingNumber(o.tracking_number)
+                            }}
+                            className="text-accent hover:underline text-[10px]"
+                          >
+                            Update
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setTrackingModal(o.id)
+                            setTrackingNumber('')
+                          }}
+                          className="text-xs text-accent hover:underline"
+                        >
+                          Add Tracking
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+          {trackingModal && (
+  <Modal
+    isOpen={true}
+    onClose={() => setTrackingModal(null)}
+    title="Update Tracking Number"
+  >
+    <div className="px-6 py-5">
+      <label className="block text-xs text-muted mb-2">Tracking Number</label>
+      <input
+        value={trackingNumber}
+        onChange={e => setTrackingNumber(e.target.value)}
+        placeholder="1Z999AA10123456784"
+        className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand mb-4"
+      />
+      <div className="flex gap-3">
+        <button
+          onClick={() => handleUpdateTracking(trackingModal)}
+          className="flex-1 py-2 bg-brand text-white rounded-lg font-medium hover:bg-accent transition-colors"
+        >
+          Save
+        </button>
+        <button
+          onClick={() => setTrackingModal(null)}
+          className="px-6 py-2 border border-border rounded-lg font-medium hover:bg-bg transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </Modal>
+)}
         </div>
       </div>
     </div>

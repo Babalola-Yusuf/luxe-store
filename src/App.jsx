@@ -12,8 +12,11 @@ import LoginPage           from './pages/LoginPage'
 import CustomerLoginPage   from './pages/auth/CustomerLoginPage'
 import SignUpPage          from './pages/auth/SignUpPage'
 import MyOrdersPage        from './pages/MyOrdersPage'
+import WishlistPage        from './pages/WishlistPage'
+import TrackOrderPage from './pages/TrackOrderPage'
 
-const STOREFRONT_VIEWS = ['store', 'cart', 'checkout', 'success', 'login', 'signup', 'my-orders']
+
+const STOREFRONT_VIEWS = ['store', 'cart', 'checkout', 'success', 'login', 'signup', 'my-orders', 'wishlist', 'track-order']
 
 export default function App() {
   const [view, setView]         = useState('store')
@@ -53,7 +56,7 @@ export default function App() {
         <Navbar view={view} setView={setView} session={session} />
 
         <main className="flex-1">
-          {view === 'store'     && <StorePage />}
+          {view === 'store'     && <StorePage session={session} />}
           {view === 'cart'      && <CartPage       setView={setView} />}
           {view === 'checkout'  && <CheckoutPage   setView={setView} setOrderId={setOrderId} />}
           {view === 'success'   && <SuccessPage    setView={setView} orderId={orderId} />}
@@ -61,6 +64,9 @@ export default function App() {
           {view === 'login'     && <CustomerLoginPage setView={setView} />}
           {view === 'signup'    && <SignUpPage        setView={setView} />}
           {view === 'my-orders' && <MyOrdersPage      setView={setView} session={session} />}
+          {view === 'wishlist'  && <WishlistPage      setView={setView} session={session} />}
+          {view === 'track-order' && <TrackOrderPage />}
+          
         </main>
 
         {STOREFRONT_VIEWS.includes(view) && <Footer />}

@@ -38,16 +38,38 @@ Deno.serve(async (req) => {
   }
 
   if (event.type === 'payment_intent.succeeded') {
-    const intent  = event.data.object as Stripe.PaymentIntent
+    const intent = event.data.object as Stripe.PaymentIntent
     const orderId = intent.metadata?.orderId
-    console.log('Payment succeeded for order:', orderId)
 
     if (orderId) {
+      // Update order status
       const { error } = await supabase
         .from('orders')
         .update({ status: 'Processing' })
         .eq('id', orderId)
+      
       if (error) console.error('Supabase update error:', error.message)
+
+      // Get customer email
+      const { data: order } = await supabase
+        .from('orders')
+        .select('customer_id, total, customers(name, email)')
+        .eq('id', orderId)
+        .single()
+
+      // Send confirmation email
+      if (order?.customers?.email) {
+        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-order-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId,
+            customerEmail: order.customers.email,
+            customerName: order.customers.name || 'Customer',
+            total: order.total,
+          }),
+        })
+      }
     }
   }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { fetchProducts } from '../data/api'
 import { useCart } from '../context/CartContext'
+import ProductDetailModal from '../components/ProductDetailModal'
 import {
   FaShoppingBag, FaHeart, FaRegHeart, FaStar, FaStarHalfAlt,
   FaSearch, FaChevronLeft, FaChevronRight, FaArrowRight,
@@ -164,7 +165,7 @@ function HeroCarousel() {
   )
 }
 
-function ProductCard({ product }) {
+function ProductCard({ product, onOpenDetail }) { 
   const { addToCart } = useCart()
   const [added, setAdded]       = useState(false)
   const [wishlist, setWishlist] = useState(false)
@@ -176,7 +177,9 @@ function ProductCard({ product }) {
   }
 
   return (
-    <div className="group bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative">
+    <div 
+    onClick={() => onOpenDetail(product)} 
+    className="group bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative">
       {/* Wishlist button */}
       <button
         onClick={(e) => { e.stopPropagation(); setWishlist(!wishlist) }}
@@ -278,7 +281,7 @@ function SkeletonCard() {
   )
 }
 
-export default function StorePage() {
+export default function StorePage({ session }) {
   const [products, setProducts]         = useState([])
   const [filteredProducts, setFiltered] = useState([])
   const [activeCategory, setActiveCategory] = useState('all')
@@ -289,6 +292,8 @@ export default function StorePage() {
   const [priceRange, setPriceRange]     = useState([0, 500])
   const [minRating, setMinRating]       = useState(0)
   const [inStockOnly, setInStockOnly]   = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -500,7 +505,8 @@ export default function StorePage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-            : filteredProducts.map((p) => <ProductCard key={p.id} product={p} />)
+            : filteredProducts.map((p) => 
+            <ProductCard key={p.id} product={p} onOpenDetail={(product) => { setSelectedProduct(product); setShowDetailModal(true); }} />)
           }
 
           {/* Empty state */}
@@ -518,6 +524,9 @@ export default function StorePage() {
             </div>
           )}
         </div>
+
+        {/* Product Detail Modal */}
+        <ProductDetailModal product={selectedProduct} isOpen={showDetailModal} onClose={() => setShowDetailModal(false)} session={session} />
 
         {/* Bottom CTA */}
         {!loading && filteredProducts.length > 0 && (
