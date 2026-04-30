@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../../data/api'
-import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa'
+import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaImage } from 'react-icons/fa'
 import Modal from '../../components/Modal'
 import StatusPill from '../../components/StatusPill'
 
@@ -15,9 +15,10 @@ export default function Products() {
   const [editingId, setEditingId] = useState(null)
   const [formData, setFormData]   = useState({
     name: '', price: '', original_price: '', emoji: '', category: 'tech',
-    rating: '★★★★★', badge: '', stock: 0, image_url: '',
+    rating: '★★★★★', badge: '', stock: 0, description: '',
+    images: [''],
   })
-  const [saving, setSaving] = useState(false)
+  const [saving, setSaving]     = useState(false)
   const [deleting, setDeleting] = useState(null)
 
   useEffect(() => {
@@ -44,7 +45,8 @@ export default function Products() {
     setEditingId(null)
     setFormData({
       name: '', price: '', original_price: '', emoji: '', category: 'tech',
-      rating: '★★★★★', badge: '', stock: 0, image_url: '',
+      rating: '★★★★★', badge: '', stock: 0, description: '',
+      images: [''],
     })
     setShowModal(true)
   }
@@ -60,7 +62,8 @@ export default function Products() {
       rating: product.rating || '★★★★★',
       badge: product.badge || '',
       stock: product.stock,
-      image_url: product.image_url || '',
+      description: product.description || '',
+      images: product.images && product.images.length > 0 ? product.images : [''],
     })
     setShowModal(true)
   }
@@ -68,6 +71,9 @@ export default function Products() {
   async function handleSave() {
     setSaving(true)
     try {
+      // Filter out empty image URLs
+      const imageUrls = formData.images.filter(url => url.trim() !== '')
+
       const data = {
         name: formData.name,
         price: parseFloat(formData.price),
@@ -77,7 +83,9 @@ export default function Products() {
         rating: formData.rating,
         badge: formData.badge || null,
         stock: parseInt(formData.stock),
-        image_url: formData.image_url || null,
+        description: formData.description,
+        images: imageUrls.length > 0 ? imageUrls : null,
+        image_url: imageUrls.length > 0 ? imageUrls[0] : null, // Keep for backward compatibility
       }
 
       if (editingId) {
@@ -110,6 +118,24 @@ export default function Products() {
 
   function set(key) {
     return (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }))
+  }
+
+  function addImageField() {
+    setFormData(prev => ({ ...prev, images: [...prev.images, ''] }))
+  }
+
+  function updateImage(index, value) {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.map((img, i) => i === index ? value : img)
+    }))
+  }
+
+  function removeImage(index) {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }))
   }
 
   return (
@@ -174,8 +200,8 @@ export default function Products() {
                 filtered.map(p => (
                   <tr key={p.id} className="border-b border-border last:border-0 hover:bg-bg/60 transition-colors">
                     <td className="px-4 py-3">
-                      {p.image_url ? (
-                        <img src={p.image_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-border" />
+                      {p.images?.[0] || p.image_url ? (
+                        <img src={p.images?.[0] || p.image_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-border" />
                       ) : (
                         <div className="w-10 h-10 bg-[#f9f8f6] rounded-lg flex items-center justify-center text-lg border border-border">
                           {p.emoji}
@@ -257,6 +283,17 @@ export default function Products() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-xs text-muted mb-1">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={set('description')}
+              rows={3}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand resize-none"
+              placeholder="Detailed product description..."
+            />
+          </div>
+
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">Price ($) *</label>
@@ -292,14 +329,40 @@ export default function Products() {
             </div>
           </div>
 
+          {/* Product Images */}
           <div>
-            <label className="block text-xs text-muted mb-1">Image URL</label>
-            <input
-              value={formData.image_url}
-              onChange={set('image_url')}
-              className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-              placeholder="https://images.unsplash.com/photo-..."
-            />
+            <label className="block text-xs text-muted mb-2 flex items-center justify-between">
+              <span>Product Images</span>
+              <button
+                type="button"
+                onClick={addImageField}
+                className="text-xs text-accent hover:underline flex items-center gap-1"
+              >
+                <FaImage /> Add Image
+              </button>
+            </label>
+            <div className="space-y-2">
+              {formData.images.map((img, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    value={img}
+                    onChange={e => updateImage(index, e.target.value)}
+                    className="flex-1 px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                    placeholder="https://images.unsplash.com/photo-..."
+                  />
+                  {formData.images.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <FaTimes />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted mt-2">Tip: Use Unsplash or other image CDN URLs</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

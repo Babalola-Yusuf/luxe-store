@@ -14,8 +14,10 @@ export default function ProductDetailModal({ product, isOpen, onClose, session }
   const [loadingReviews, setLoadingReviews] = useState(true)
 
   // Mock multiple images (in real app, you'd have product.images array)
-  const images = product?.image_url 
-    ? [product.image_url, product.image_url, product.image_url]
+  const images = product?.images && product.images.length > 0
+    ? product.images
+    : product?.image_url
+    ? [product.image_url]
     : []
 
   useEffect(() => {
@@ -177,8 +179,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, session }
 
               {/* Description */}
               <p className="text-muted mb-6 leading-relaxed">
-                Premium quality {product.category} product. Carefully curated for style and functionality.
-                Perfect for everyday use with exceptional craftsmanship and attention to detail.
+                {product.description || 'Premium quality product. Carefully curated for style and functionality.'}
               </p>
 
               {/* Stock */}
