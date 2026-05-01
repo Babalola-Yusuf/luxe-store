@@ -343,3 +343,54 @@ export function exportToCSV(data, filename) {
   a.click()
   URL.revokeObjectURL(url)
 }
+// ── Settings ──────────────────────────────────────────────
+
+export async function fetchSettings() {
+  const { data, error } = await supabase
+    .from('store_settings')
+    .select('*')
+
+  if (error) throw error
+  
+  // Convert array to object keyed by setting_key
+  return data.reduce((acc, setting) => {
+    acc[setting.setting_key] = setting.setting_value
+    return acc
+  }, {})
+}
+
+export async function updateSetting(key, value) {
+  const { error } = await supabase.rpc('update_setting', {
+    key,
+    value,
+  })
+
+  if (error) throw error
+}
+
+export async function fetchPromoCodes() {
+  const { data, error } = await supabase
+    .from('promo_codes')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function createPromoCode(promoData) {
+  const { error } = await supabase
+    .from('promo_codes')
+    .insert(promoData)
+
+  if (error) throw error
+}
+
+export async function deletePromoCode(id) {
+  const { error } = await supabase
+    .from('promo_codes')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
