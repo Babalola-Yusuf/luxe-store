@@ -1,15 +1,13 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { fetchProducts } from '../data/api'
 import { useCart } from '../context/CartContext'
-import ProductDetailModal from '../components/ProductDetailModal'
-import Particles from 'react-tsparticles'
-import { loadSlim } from 'tsparticles-slim'
 import {
   FaShoppingBag, FaHeart, FaRegHeart, FaStar, FaStarHalfAlt,
   FaSearch, FaChevronLeft, FaChevronRight, FaArrowRight,
   FaLaptop, FaTshirt, FaHome, FaSprayCan, FaDumbbell, FaThLarge,
-  FaFilter, FaTimes
+  FaFilter, FaTimes, FaUsers
 } from 'react-icons/fa'
+import ProductDetailModal from '../components/ProductDetailModal'
 
 const CATEGORIES = [
   { id: 'all',     label: 'All',     icon: FaThLarge },
@@ -18,33 +16,6 @@ const CATEGORIES = [
   { id: 'home',    label: 'Home',    icon: FaHome },
   { id: 'beauty',  label: 'Beauty',  icon: FaSprayCan },
   { id: 'sports',  label: 'Sports',  icon: FaDumbbell },
-]
-
-const HERO_SLIDES = [
-  {
-    title: 'Discover Premium',
-    subtitle: 'Collections',
-    description: 'Curated lifestyle products that blend style, quality, and affordability.',
-    badge: 'New Collection 2026',
-    cta: 'Shop Now',
-    bg: 'from-brand via-[#2d2d5e] to-[#1a1a2e]',
-  },
-  {
-    title: 'Tech Essentials',
-    subtitle: 'For Modern Living',
-    description: 'Cutting-edge gadgets and accessories to elevate your digital lifestyle.',
-    badge: 'Latest Tech',
-    cta: 'Explore Tech',
-    bg: 'from-[#1e3a8a] via-[#1e40af] to-[#1d4ed8]',
-  },
-  {
-    title: 'Summer Fashion',
-    subtitle: 'Trending Now',
-    description: 'Stay ahead with our handpicked selection of fashion-forward pieces.',
-    badge: 'Hot Deals',
-    cta: 'Shop Fashion',
-    bg: 'from-[#be123c] via-[#e11d48] to-[#f43f5e]',
-  },
 ]
 
 function HeroCarousel() {
@@ -110,49 +81,9 @@ function HeroCarousel() {
 
   const slide = HERO_SLIDES[currentSlide]
 
-  const particlesInit = useCallback(async (engine) => {
-    await loadSlim(engine)
-  }, [])
-
   return (
     <div className="relative overflow-hidden h-[500px] sm:h-[600px] lg:h-[700px]">
-      <Particles
-        id="tsparticles"
-        init={particlesInit}
-        options={{
-          background: { color: { value: 'transparent' } },
-          fpsLimit: 60,
-          particles: {
-            color: { value: '#ffffff' },
-            links: {
-              color: '#ffffff',
-              distance: 150,
-              enable: true,
-              opacity: 0.2,
-              width: 1,
-            },
-            move: {
-              direction: 'none',
-              enable: true,
-              outModes: { default: 'bounce' },
-              random: false,
-              speed: 1,
-              straight: false,
-            },
-            number: {
-              density: { enable: true, area: 800 },
-              value: 40,
-            },
-            opacity: { value: 0.3 },
-            shape: { type: 'circle' },
-            size: { value: { min: 1, max: 3 } },
-          },
-          detectRetina: true,
-        }}
-        className="absolute inset-0 pointer-events-none"
-      />
-
-      {/* Background Images with Parallax Effect */}
+      {/* Background Images */}
       {HERO_SLIDES.map((s, index) => (
         <div
           key={index}
@@ -168,9 +99,7 @@ function HeroCarousel() {
               transition: 'transform 6s ease-out',
             }}
           />
-          {/* Gradient Overlay */}
           <div className={`absolute inset-0 bg-gradient-to-r ${s.gradient}`} />
-          {/* Mesh Gradient Effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/40" />
         </div>
       ))}
@@ -180,6 +109,24 @@ function HeroCarousel() {
         <div className="absolute top-20 right-20 w-72 h-72 bg-white/5 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-accent2/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
+      {/* CSS-Based Floating Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              width: `${Math.random() * 6 + 2}px`,
+              height: `${Math.random() * 6 + 2}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDuration: `${Math.random() * 20 + 15}s`,
+              animationDelay: `${Math.random() * 5}s`,
+            }}
+          />
+        ))}
       </div>
 
       {/* Content */}
@@ -226,15 +173,17 @@ function HeroCarousel() {
               </button>
             </div>
 
-            {/* Stats */}
+            {/* Stats with Professional Icons */}
             <div className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-white/20 max-w-xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards]">
               {[
-                { label: 'Products', value: '500+', icon: '🏷️' },
-                { label: 'Customers', value: '10k+', icon: '👥' },
-                { label: 'Rating', value: '4.9★', icon: '⭐' },
+                { label: 'Products', value: '500+', Icon: FaShoppingBag },
+                { label: 'Customers', value: '10k+', Icon: FaUsers },
+                { label: 'Rating', value: '4.9', Icon: FaStar },
               ].map(stat => (
-                <div key={stat.label} className="text-center">
-                  <div className="text-3xl mb-1">{stat.icon}</div>
+                <div key={stat.label} className="text-center group">
+                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-2 group-hover:scale-110 transition-transform">
+                    <stat.Icon className="text-xl sm:text-2xl text-accent2" />
+                  </div>
                   <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">{stat.value}</div>
                   <div className="text-xs sm:text-sm text-white/70 uppercase tracking-wider">{stat.label}</div>
                 </div>
@@ -244,7 +193,7 @@ function HeroCarousel() {
         </div>
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation */}
       <button
         onClick={prevSlide}
         className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all shadow-xl group"
@@ -258,7 +207,7 @@ function HeroCarousel() {
         <FaChevronRight className="text-lg group-hover:translate-x-0.5 transition-transform" />
       </button>
 
-      {/* Dots Navigation */}
+      {/* Dots */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
         {HERO_SLIDES.map((_, index) => (
           <button
@@ -269,7 +218,6 @@ function HeroCarousel() {
                 ? 'w-12 h-3 bg-white shadow-lg shadow-white/50'
                 : 'w-3 h-3 bg-white/40 hover:bg-white/60'
             } rounded-full`}
-            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>
@@ -285,24 +233,30 @@ function HeroCarousel() {
   )
 }
 
-function ProductCard({ product, onOpenDetail }) { 
+function ProductCard({ product, onOpenDetail }) {
   const { addToCart } = useCart()
   const [added, setAdded]       = useState(false)
   const [wishlist, setWishlist] = useState(false)
 
-  function handleAdd() {
+  function handleAdd(e) {
+    e.stopPropagation()
     addToCart(product.id)
     setAdded(true)
     setTimeout(() => setAdded(false), 1200)
   }
 
+  function handleWishlistToggle(e) {
+    e.stopPropagation()
+    setWishlist(!wishlist)
+  }
+
   return (
-    <div 
-    onClick={() => onOpenDetail(product)} 
-    className="group bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative">
-      {/* Wishlist button */}
+    <div
+      onClick={() => onOpenDetail(product)}
+      className="group bg-surface rounded-2xl border border-border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative"
+    >
       <button
-        onClick={(e) => { e.stopPropagation(); setWishlist(!wishlist) }}
+        onClick={handleWishlistToggle}
         className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-white transition-all"
       >
         {wishlist ? (
@@ -312,24 +266,20 @@ function ProductCard({ product, onOpenDetail }) {
         )}
       </button>
 
-      {/* Badge */}
       {product.badge && (
         <div className="absolute top-3 left-3 z-10">
           <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wide ${
-            product.badge === 'sale'
-              ? 'bg-red-500 text-white'
-              : 'bg-green-500 text-white'
+            product.badge === 'sale' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
           }`}>
             {product.badge}
           </span>
         </div>
       )}
 
-      {/* Product image */}
       <div className="relative h-48 sm:h-56 bg-[#f9f8f6] overflow-hidden">
-        {product.image_url ? (
+        {product.images?.[0] || product.image_url ? (
           <img
-            src={product.image_url}
+            src={product.images?.[0] || product.image_url}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -341,7 +291,6 @@ function ProductCard({ product, onOpenDetail }) {
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
       </div>
 
-      {/* Product info */}
       <div className="p-4">
         <p className="font-medium text-sm leading-snug mb-2 line-clamp-2 min-h-[40px]">
           {product.name}
@@ -350,9 +299,7 @@ function ProductCard({ product, onOpenDetail }) {
         <div className="flex items-baseline gap-2 mb-1">
           <span className="text-lg font-bold text-accent">${product.price}</span>
           {product.original_price && (
-            <span className="text-xs text-muted line-through">
-              ${product.original_price}
-            </span>
+            <span className="text-xs text-muted line-through">${product.original_price}</span>
           )}
         </div>
 
@@ -375,9 +322,7 @@ function ProductCard({ product, onOpenDetail }) {
         <button
           onClick={handleAdd}
           className={`w-full py-2.5 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2 ${
-            added
-              ? 'bg-green-600 text-white'
-              : 'bg-brand text-white hover:bg-accent hover:shadow-lg'
+            added ? 'bg-green-600 text-white' : 'bg-brand text-white hover:bg-accent hover:shadow-lg'
           }`}
         >
           <FaShoppingBag className="text-sm" />
@@ -402,16 +347,16 @@ function SkeletonCard() {
 }
 
 export default function StorePage({ session }) {
-  const [products, setProducts]         = useState([])
-  const [filteredProducts, setFiltered] = useState([])
+  const [products, setProducts]             = useState([])
+  const [filteredProducts, setFiltered]     = useState([])
   const [activeCategory, setActiveCategory] = useState('all')
-  const [loading, setLoading]           = useState(true)
-  const [error, setError]               = useState(null)
-  const [searchQuery, setSearchQuery]   = useState('')
-  const [showFilters, setShowFilters]   = useState(false)
-  const [priceRange, setPriceRange]     = useState([0, 500])
-  const [minRating, setMinRating]       = useState(0)
-  const [inStockOnly, setInStockOnly]   = useState(false)
+  const [loading, setLoading]               = useState(true)
+  const [error, setError]                   = useState(null)
+  const [searchQuery, setSearchQuery]       = useState('')
+  const [showFilters, setShowFilters]       = useState(false)
+  const [priceRange, setPriceRange]         = useState([0, 500])
+  const [minRating, setMinRating]           = useState(0)
+  const [inStockOnly, setInStockOnly]       = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
 
@@ -428,23 +373,19 @@ export default function StorePage({ session }) {
       .finally(() => setLoading(false))
   }, [activeCategory])
 
-  // Apply filters whenever search or filter values change
   useEffect(() => {
     let result = [...products]
 
-    // Search filter
     if (searchQuery) {
       result = result.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 
-    // Price range filter
     result = result.filter(p =>
       p.price >= priceRange[0] && p.price <= priceRange[1]
     )
 
-    // Rating filter
     if (minRating > 0) {
       result = result.filter(p => {
         const rating = parseFloat(p.rating?.replace(/[★☆]/g, '') || '0')
@@ -452,7 +393,6 @@ export default function StorePage({ session }) {
       })
     }
 
-    // Stock filter
     if (inStockOnly) {
       result = result.filter(p => p.stock > 0)
     }
@@ -470,13 +410,10 @@ export default function StorePage({ session }) {
   return (
     <div className="bg-gradient-to-b from-bg to-[#faf9f7]">
       
-      {/* Hero Carousel */}
       <HeroCarousel />
 
-      {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
         
-        {/* Section header with search */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
@@ -486,7 +423,6 @@ export default function StorePage({ session }) {
               </p>
             </div>
 
-            {/* Search bar */}
             <div className="relative w-full sm:w-80">
               <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
               <input
@@ -508,9 +444,8 @@ export default function StorePage({ session }) {
           </div>
         </div>
 
-        {/* Category filters + Advanced filters button */}
-        <div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2">
-          <div className="flex gap-2 flex-1 overflow-x-auto">
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon
               return (
@@ -518,65 +453,74 @@ export default function StorePage({ session }) {
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
                   disabled={loading}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap border transition-all ${
+                  className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap border transition-all shrink-0 ${
                     activeCategory === cat.id
                       ? 'bg-brand text-white border-brand shadow-md scale-105'
                       : 'bg-surface text-muted border-border hover:border-brand/40 hover:bg-bg'
                   }`}
                 >
                   <Icon className="text-base" />
-                  {cat.label}
+                  <span className="hidden sm:inline">{cat.label}</span>
                 </button>
               )
             })}
           </div>
 
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap border bg-surface text-muted border-border hover:border-brand/40 hover:bg-bg transition-all"
-          >
-            <FaFilter className="text-sm" />
-            Filters
-          </button>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+            </p>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                showFilters
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-surface text-muted border-border hover:border-brand/40 hover:bg-bg'
+              }`}
+            >
+              <FaFilter className="text-sm" />
+              <span>Filters</span>
+              {(minRating > 0 || priceRange[0] > 0 || priceRange[1] < 500 || inStockOnly) && (
+                <span className="ml-1 w-2 h-2 rounded-full bg-accent animate-pulse" />
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Advanced filters panel */}
         {showFilters && (
-          <div className="bg-surface border border-border rounded-xl p-5 mb-6">
+          <div className="bg-surface border border-border rounded-xl p-4 sm:p-5 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-sm">Advanced Filters</h3>
+              <h3 className="font-medium text-sm sm:text-base">Advanced Filters</h3>
               <button
                 onClick={resetFilters}
-                className="text-xs text-accent hover:underline"
+                className="text-xs sm:text-sm text-accent hover:underline flex items-center gap-1"
               >
-                Reset all
+                <FaTimes className="text-xs" /> Reset all
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Price range */}
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs text-muted mb-2">Price Range</label>
-                <div className="flex items-center gap-2">
+                <label className="block text-xs text-muted mb-2">Price Range ($)</label>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <input
                     type="number"
                     value={priceRange[0]}
                     onChange={e => setPriceRange([+e.target.value, priceRange[1]])}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                    className="flex-1 px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
                     placeholder="Min"
                   />
-                  <span className="text-muted">-</span>
+                  <span className="hidden sm:block text-muted">to</span>
                   <input
                     type="number"
                     value={priceRange[1]}
                     onChange={e => setPriceRange([priceRange[0], +e.target.value])}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                    className="flex-1 px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
                     placeholder="Max"
                   />
                 </div>
               </div>
 
-              {/* Min rating */}
               <div>
                 <label className="block text-xs text-muted mb-2">Minimum Rating</label>
                 <select
@@ -591,24 +535,21 @@ export default function StorePage({ session }) {
                 </select>
               </div>
 
-              {/* In stock only */}
               <div>
-                <label className="block text-xs text-muted mb-2">Availability</label>
-                <label className="flex items-center gap-2 px-3 py-2 border border-border rounded-lg cursor-pointer hover:bg-bg transition-colors">
+                <label className="flex items-center gap-3 px-3 py-3 border border-border rounded-lg cursor-pointer hover:bg-bg transition-colors">
                   <input
                     type="checkbox"
                     checked={inStockOnly}
                     onChange={e => setInStockOnly(e.target.checked)}
-                    className="w-4 h-4 accent-brand"
+                    className="w-5 h-5 accent-brand cursor-pointer"
                   />
-                  <span className="text-sm">In stock only</span>
+                  <span className="text-sm flex-1">Show only items in stock</span>
                 </label>
               </div>
             </div>
           </div>
         )}
 
-        {/* Error state */}
         {error && (
           <div className="mx-auto mb-6 px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl max-w-2xl">
             Failed to load products: {error}
@@ -621,15 +562,21 @@ export default function StorePage({ session }) {
           </div>
         )}
 
-        {/* Products grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-            : filteredProducts.map((p) => 
-            <ProductCard key={p.id} product={p} onOpenDetail={(product) => { setSelectedProduct(product); setShowDetailModal(true); }} />)
+            : filteredProducts.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onOpenDetail={(product) => {
+                    setSelectedProduct(product)
+                    setShowDetailModal(true)
+                  }}
+                />
+              ))
           }
 
-          {/* Empty state */}
           {!loading && !error && filteredProducts.length === 0 && (
             <div className="col-span-full text-center py-20">
               <FaSearch className="text-5xl text-muted mx-auto mb-4" />
@@ -645,10 +592,6 @@ export default function StorePage({ session }) {
           )}
         </div>
 
-        {/* Product Detail Modal */}
-        <ProductDetailModal product={selectedProduct} isOpen={showDetailModal} onClose={() => setShowDetailModal(false)} session={session} />
-
-        {/* Bottom CTA */}
         {!loading && filteredProducts.length > 0 && (
           <div className="mt-12 text-center">
             <button className="bg-surface border border-border text-brand px-8 py-3 rounded-full font-medium hover:bg-bg hover:shadow-md transition-all inline-flex items-center gap-2">
@@ -658,6 +601,13 @@ export default function StorePage({ session }) {
           </div>
         )}
       </div>
+
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        session={session}
+      />
     </div>
   )
 }
