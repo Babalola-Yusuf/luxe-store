@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import { supabase } from '../lib/supabase'
 import { FaBars, FaTimes, FaShoppingCart } from 'react-icons/fa'
 
 export default function Navbar({ view, setView, session }) {
   const { totalItems } = useCart()
+  const { settings } = useSettings()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const isAdmin = session?.user?.email?.endsWith('@luxe.com')
 
@@ -33,9 +35,9 @@ export default function Navbar({ view, setView, session }) {
     <nav className="bg-brand text-white sticky top-0 z-50 shadow-lg">
       <div className="flex items-center justify-between px-4 h-14 max-w-7xl mx-auto">
         
-        {/* Logo */}
+        {/* Logo - use settings */}
         <button onClick={() => navigate('store')} className="font-display text-xl font-bold tracking-wide shrink-0">
-          Lu<span className="text-accent2">x</span>e
+          {settings.general.storeName || 'Luxe'}
         </button>
 
         {/* Desktop Nav */}

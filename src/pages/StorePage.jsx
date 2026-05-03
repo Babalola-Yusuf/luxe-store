@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { fetchProducts } from '../data/api'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import {
   FaShoppingBag, FaHeart, FaRegHeart, FaStar, FaStarHalfAlt,
   FaSearch, FaChevronLeft, FaChevronRight, FaArrowRight,
@@ -235,6 +236,7 @@ function HeroCarousel() {
 
 function ProductCard({ product, onOpenDetail }) {
   const { addToCart } = useCart()
+  const { formatPrice } = useSettings()
   const [added, setAdded]       = useState(false)
   const [wishlist, setWishlist] = useState(false)
 
@@ -297,9 +299,9 @@ function ProductCard({ product, onOpenDetail }) {
         </p>
 
         <div className="flex items-baseline gap-2 mb-1">
-          <span className="text-lg font-bold text-accent">${product.price}</span>
+          <span className="text-lg font-bold text-accent">{formatPrice(product.price)}</span>
           {product.original_price && (
-            <span className="text-xs text-muted line-through">${product.original_price}</span>
+            <span className="text-xs text-muted line-through">{formatPrice(product.original_price)}</span>
           )}
         </div>
 

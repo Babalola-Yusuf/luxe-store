@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { fetchSettings, updateSetting, fetchPromoCodes, createPromoCode, deletePromoCode } from '../../data/api'
 import { FaSave, FaPlus, FaTrash, FaCheck, FaTimes } from 'react-icons/fa'
 import Modal from '../../components/Modal'
+import { useSettings as useSettingsContext } from '../../context/SettingsContext'
 
 export default function Settings() {
+  const { refreshSettings } = useSettingsContext()
   const [settings, setSettings] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(null)
@@ -59,6 +61,7 @@ export default function Settings() {
     setSaving(key)
     try {
       await updateSetting(key, settings[key])
+      await refreshSettings()
       alert('Settings saved successfully!')
     } catch (err) {
       alert('Failed to save: ' + err.message)

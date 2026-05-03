@@ -4,13 +4,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand:   '#1a1a2e',
-        accent:  '#e94560',
-        accent2: '#f5a623',
-        surface: '#ffffff',
-        bg:      '#f8f7f4',
-        border:  '#e8e4dc',
-        muted:   '#7a7a8a',
+        brand:   'var(--color-brand)',
+        accent:  'var(--color-accent)',
+        accent2: 'var(--color-accent2)',
+        surface: 'var(--color-surface)',
+        bg:      'var(--color-bg)',
+        border:  'var(--color-border)',
+        muted:   'var(--color-muted)',
       },
       fontFamily: {
         sans:    ['"DM Sans"', 'sans-serif'],

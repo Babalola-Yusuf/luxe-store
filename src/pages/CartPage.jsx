@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import { fetchProducts } from '../data/api'
 import { FaShoppingCart, FaTrash, FaArrowRight, FaGift, FaTruck } from 'react-icons/fa'
 
 export default function CartPage({ setView }) {
   const { cart, changeQty, removeItem } = useCart()
+  const { formatPrice, calculateShipping, calculateTax, settings } = useSettings()
   const [products, setProducts] = useState([])
   const [promoCode, setPromoCode] = useState('')
 
@@ -18,8 +20,8 @@ export default function CartPage({ setView }) {
     return sum + (p ? p.price * qty : 0)
   }, 0)
 
-  const shipping = subtotal >= 50 ? 0 : 5.99
-  const tax = subtotal * 0.085
+  const shipping = calculateShipping(subtotal)
+  const tax = calculateTax(subtotal)
   const total = subtotal + shipping + tax
 
   // Calculate estimated delivery (5-7 business days from now)
@@ -151,11 +153,11 @@ export default function CartPage({ setView }) {
                   {/* Price */}
                   <div className="text-right shrink-0">
                     <p className="text-base sm:text-lg font-bold text-accent">
-                      ${(p.price * qty).toFixed(2)}
+                      {formatPrice(p.price * qty)}
                     </p>
                     {p.original_price && (
                       <p className="text-xs text-muted line-through">
-                        ${(p.original_price * qty).toFixed(2)}
+                        {formatPrice(p.original_price * qty)}
                       </p>
                     )}
                   </div>
@@ -167,6 +169,24 @@ export default function CartPage({ setView }) {
 
         {/* Right: Summary */}
         <div className="lg:col-span-1">
+          {/* Free shipping progress */}
+          {subtotal < settings.shipping.freeShippingThreshold && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-2 text-blue-700 text-sm mb-2">
+                <FaTruck />
+                <span className="font-medium">
+                  Add {formatPrice(settings.shipping.freeShippingThreshold - subtotal)} more for FREE shipping!
+                </span>
+              </div>
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  style={{ width: `${Math.min((subtotal / settings.shipping.freeShippingThreshold) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="bg-surface rounded-xl border border-border p-5 sticky top-4">
             <h3 className="font-display text-lg font-semibold mb-4">Order Summary</h3>
 

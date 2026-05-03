@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import { fetchProducts, placeOrder, createPaymentIntent, validatePromoCode } from '../data/api'
 import { FaLock, FaShieldAlt, FaUndo, FaTag, FaTimes, FaCheckCircle } from 'react-icons/fa'
 
@@ -55,7 +56,7 @@ function FormField({ label, type = 'text', placeholder, value, onChange, error }
   )
 }
 
-function OrderSummary({ products, cart, subtotal, shipping, tax, discount, total, promoCode, onRemovePromo }) {
+function OrderSummary({ products, cart, subtotal, shipping, tax, discount, total, promoCode, onRemovePromo, formatPrice }) {
   const items = Object.entries(cart).filter(([, q]) => q > 0)
 
   return (
@@ -103,25 +104,25 @@ function OrderSummary({ products, cart, subtotal, shipping, tax, discount, total
       <div className="border-t border-border pt-3 space-y-2">
         <div className="flex justify-between text-sm text-muted">
           <span>Subtotal</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between text-sm text-muted">
           <span>Shipping</span>
-          <span>{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+          <span>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
         </div>
         <div className="flex justify-between text-sm text-muted">
           <span>Tax</span>
-          <span>${tax.toFixed(2)}</span>
+          <span>{formatPrice(tax)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between text-sm text-green-600 font-medium">
             <span>Discount</span>
-            <span>-${discount.toFixed(2)}</span>
+            <span>-{formatPrice(discount)}</span>
           </div>
         )}
         <div className="flex justify-between font-bold text-base pt-2 border-t border-border">
           <span>Total</span>
-          <span className="text-accent">${total.toFixed(2)}</span>
+          <span className="text-accent">{formatPrice(total)}</span>
         </div>
       </div>
 
@@ -255,6 +256,7 @@ function PaymentForm({ total, onSuccess, form, setForm, formErrors, setFormError
 
 export default function CheckoutPage({ setView, setOrderId }) {
   const { cart } = useCart()
+  const { formatPrice, calculateShipping, calculateTax } = useSettings()
   const hasRun = useRef(false)
 
   const [products, setProducts] = useState([])
@@ -278,8 +280,9 @@ export default function CheckoutPage({ setView, setOrderId }) {
     const p = products.find(x => x.id === Number(id))
     return sum + (p ? p.price * qty : 0)
   }, 0)
-  const shipping = subtotal >= 50 ? 0 : 5.99
-  const tax = subtotal * 0.085
+  
+  const shipping = calculateShipping(subtotal)
+  const tax = calculateTax(subtotal)
   const discount = promoDiscount
   const total = Math.max(0, subtotal + shipping + tax - discount)
 
@@ -452,6 +455,7 @@ export default function CheckoutPage({ setView, setOrderId }) {
             total={total}
             promoCode={promoCode}
             onRemovePromo={handleRemovePromo}
+            formatPrice={formatPrice}
           />
         </div>
       </div>
