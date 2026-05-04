@@ -107,22 +107,26 @@ export async function placeOrder({ cartItems, total }) {
 
 // ── Stripe ────────────────────────────────────────────────
 
-export async function createPaymentIntent({ amount, orderId }) {
-  const res = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({ amount, orderId }),
-    }
-  )
+export async function createPaymentIntent({ amount, orderId, currency = 'usd' }) {
+  const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({
+      amount: Math.round(amount * 100),
+      orderId,
+      currency: currency.toLowerCase(),
+    }),
+  })
+
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(error.error || 'Failed to create payment intent')
+  }
 
   const data = await res.json()
-  console.log('Edge Function response:', data)
-  if (data.error) throw new Error(data.error)
   return data.clientSecret
 }
 

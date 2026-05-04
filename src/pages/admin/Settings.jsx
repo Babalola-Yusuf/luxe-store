@@ -196,10 +196,14 @@ export default function Settings() {
                   onChange={e => updateField('general', 'currency', e.target.value)}
                   className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand bg-surface"
                 >
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="NGN">NGN (₦)</option>
+                  <option value="USD">USD - US Dollar ($)</option>
+                  <option value="EUR">EUR - Euro (€)</option>
+                  <option value="GBP">GBP - British Pound (£)</option>
+                  <option value="NGN">NGN - Nigerian Naira (₦)</option>
+                  <option value="JPY">JPY - Japanese Yen (¥)</option>
+                  <option value="CAD">CAD - Canadian Dollar (CA$)</option>
+                  <option value="AUD">AUD - Australian Dollar (A$)</option>
+                  <option value="INR">INR - Indian Rupee (₹)</option>
                 </select>
               </div>
               <div>
@@ -322,6 +326,17 @@ export default function Settings() {
               </p>
               <p className="text-xs text-blue-600">
                 Set VITE_STRIPE_PUBLISHABLE_KEY in your .env file.
+              </p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-xs text-blue-800 mb-2">
+                <strong>Currency Support:</strong>
+              </p>
+              <p className="text-xs text-blue-600 mb-2">
+                The payment currency is set in General Settings. Stripe supports: USD, EUR, GBP, NGN, JPY, CAD, AUD, INR, and many more.
+              </p>
+              <p className="text-xs text-blue-600">
+                <strong>Note:</strong> Some currencies (like NGN) may have limited payment method availability. Test mode uses your configured currency.
               </p>
             </div>
             <button

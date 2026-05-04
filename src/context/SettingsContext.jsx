@@ -75,12 +75,22 @@ export function SettingsProvider({ children }) {
       EUR: '€',
       GBP: '£',
       NGN: '₦',
+      JPY: '¥',
+      CAD: 'CA$',
+      AUD: 'A$',
+      INR: '₹',
     }
     return symbols[settings.general.currency] || '$'
   }
 
   function formatPrice(amount) {
     const symbol = getCurrencySymbol()
+    const currency = settings.general.currency || 'USD'
+
+    if (['JPY', 'KRW'].includes(currency)) {
+      return `${symbol}${Math.round(amount)}`
+    }
+
     return `${symbol}${parseFloat(amount).toFixed(2)}`
   }
 

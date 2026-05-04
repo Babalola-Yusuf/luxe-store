@@ -3,7 +3,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useCart } from '../context/CartContext'
 import { useSettings } from '../context/SettingsContext'
-import { fetchProducts, placeOrder, createPaymentIntent, validatePromoCode } from '../data/api'
+import { fetchProducts, placeOrder, createPaymentIntent, validatePromoCode, incrementPromoUse } from '../data/api'
 import { FaLock, FaShieldAlt, FaUndo, FaTag, FaTimes, FaCheckCircle } from 'react-icons/fa'
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
@@ -145,7 +145,7 @@ function OrderSummary({ products, cart, subtotal, shipping, tax, discount, total
   )
 }
 
-function PaymentForm({ total, onSuccess, form, setForm, formErrors, setFormErrors }) {
+function PaymentForm({ total, promoCode, onSuccess, form, setForm, formErrors, setFormErrors }) {
   const stripe = useStripe()
   const elements = useElements()
   const { clearCart } = useCart()
@@ -189,6 +189,14 @@ function PaymentForm({ total, onSuccess, form, setForm, formErrors, setFormError
       setError(stripeError.message)
       setLoading(false)
       return
+    }
+
+    if (promoCode) {
+      try {
+        await incrementPromoUse(promoCode)
+      } catch (err) {
+        console.error('Failed to increment promo usage:', err)
+      }
     }
 
     clearCart()
@@ -254,9 +262,9 @@ function PaymentForm({ total, onSuccess, form, setForm, formErrors, setFormError
   )
 }
 
-export default function CheckoutPage({ setView, setOrderId }) {
+export default function CheckoutPage({ setView, setOrderId, appliedPromo }) {
   const { cart } = useCart()
-  const { formatPrice, calculateShipping, calculateTax } = useSettings()
+  const { formatPrice, calculateShipping, calculateTax, settings } = useSettings()
   const hasRun = useRef(false)
 
   const [products, setProducts] = useState([])
@@ -264,9 +272,9 @@ export default function CheckoutPage({ setView, setOrderId }) {
   const [currentOrderId, setCurrentOrderId] = useState(null)
   const [preparing, setPreparing] = useState(true)
   const [error, setError] = useState(null)
-  const [promoCode, setPromoCode] = useState('')
+  const [promoCode, setPromoCode] = useState(appliedPromo?.code || '')
   const [promoInput, setPromoInput] = useState('')
-  const [promoDiscount, setPromoDiscount] = useState(0)
+  const [promoDiscount, setPromoDiscount] = useState(appliedPromo?.discount || 0)
   const [applyingPromo, setApplyingPromo] = useState(false)
   const [promoError, setPromoError] = useState('')
   const [form, setForm] = useState({
@@ -299,13 +307,21 @@ export default function CheckoutPage({ setView, setOrderId }) {
         const p = prods.find(x => x.id === Number(id))
         return sum + (p ? p.price * qty : 0)
       }, 0)
-      const t = parseFloat((sub + (sub >= 50 ? 0 : 5.99) + sub * 0.085).toFixed(2))
+      const ship = calculateShipping(sub)
+      const taxAmount = calculateTax(sub)
+      const discountAmount = appliedPromo?.discount || 0
+      const t = Math.max(0, parseFloat((sub + ship + taxAmount - discountAmount).toFixed(2)))
 
       try {
         const orderId = await placeOrder({ cartItems: items, total: t })
         setCurrentOrderId(orderId)
 
-        const secret = await createPaymentIntent({ amount: t, orderId })
+        const currency = settings.general?.currency || 'USD'
+        const secret = await createPaymentIntent({
+          amount: t,
+          orderId,
+          currency,
+        })
         setClientSecret(secret)
       } catch (err) {
         setError(err.message)
@@ -417,16 +433,18 @@ export default function CheckoutPage({ setView, setOrderId }) {
                 appearance: {
                   theme: 'stripe',
                   variables: {
-                    colorPrimary: '#1a1a2e',
+                    colorPrimary: settings.appearance?.primaryColor || '#1a1a2e',
                     colorBackground: '#ffffff',
                     borderRadius: '8px',
                     fontFamily: '"DM Sans", sans-serif',
                   },
                 },
+                locale: 'auto',
               }}
             >
               <PaymentForm
                 total={total}
+                promoCode={promoCode}
                 form={form}
                 setForm={setForm}
                 formErrors={formErrors}

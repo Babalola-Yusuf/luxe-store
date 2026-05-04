@@ -33,6 +33,7 @@ function AppContent() {
   const { settings } = useSettings()
   const [view, setView]         = useState('store')
   const [orderId, setOrderId]   = useState('')
+  const [appliedPromo, setAppliedPromo] = useState({ code: '', discount: 0 })
   const [session, setSession]   = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
 
@@ -99,8 +100,8 @@ function AppContent() {
 
       <main className="flex-1">
         {view === 'store'     && <StorePage session={session} />}
-        {view === 'cart'      && <CartPage       setView={setView} />}
-        {view === 'checkout'  && <CheckoutPage   setView={setView} setOrderId={setOrderId} />}
+        {view === 'cart'      && <CartPage       setView={setView} setAppliedPromo={setAppliedPromo} />}
+        {view === 'checkout'  && <CheckoutPage   setView={setView} setOrderId={setOrderId} appliedPromo={appliedPromo} />}
         {view === 'success'   && <SuccessPage    setView={setView} orderId={orderId} />}
         {view === 'admin'     && <AdminPage      session={session} />}
         {view === 'login'     && <CustomerLoginPage setView={setView} />}
