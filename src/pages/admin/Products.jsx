@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../../data/api'
+import { useSettings } from '../../context/SettingsContext'
 import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaImage } from 'react-icons/fa'
 import Modal from '../../components/Modal'
 import StatusPill from '../../components/StatusPill'
@@ -7,6 +8,7 @@ import StatusPill from '../../components/StatusPill'
 const CATEGORIES = ['tech', 'fashion', 'home', 'beauty', 'sports']
 
 export default function Products() {
+  const { formatPrice } = useSettings()
   const [products, setProducts]   = useState([])
   const [loading, setLoading]     = useState(true)
   const [search, setSearch]       = useState('')
@@ -214,9 +216,9 @@ export default function Products() {
                     </td>
                     <td className="px-4 py-3 text-muted capitalize">{p.category}</td>
                     <td className="px-4 py-3">
-                      <p className="font-medium">${p.price}</p>
+                      <p className="font-medium">{formatPrice(p.price)}</p>
                       {p.original_price && (
-                        <p className="text-[10px] text-muted line-through">${p.original_price}</p>
+                        <p className="text-[10px] text-muted line-through">{formatPrice(p.original_price)}</p>
                       )}
                     </td>
                     <td className={`px-4 py-3 font-medium ${p.stock < 15 ? 'text-red-500' : 'text-muted'}`}>

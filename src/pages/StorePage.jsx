@@ -175,7 +175,7 @@ function HeroCarousel() {
             </div>
 
             {/* Stats with Professional Icons */}
-            <div className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-white/20 max-w-xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards]">
+            <div className="hidden sm:grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-white/20 max-w-xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards]">
               {[
                 { label: 'Products', value: '500+', Icon: FaShoppingBag },
                 { label: 'Customers', value: '10k+', Icon: FaUsers },

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchDashboardStats, fetchOrders, fetchProducts, fetchCustomers, exportToCSV } from '../../data/api'
+import { useSettings } from '../../context/SettingsContext'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { FaDollarSign, FaShoppingBag, FaUsers, FaChartLine, FaDownload, FaMoon, FaSun, FaSync } from 'react-icons/fa'
 import StatusPill from '../../components/StatusPill'
@@ -7,6 +8,7 @@ import StatusPill from '../../components/StatusPill'
 const COLORS = ['#1a1a2e', '#e94560', '#f5a623', '#16a34a', '#7c3aed']
 
 export default function Dashboard() {
+  const { formatPrice } = useSettings()
   const [stats, setStats]       = useState(null)
   const [orders, setOrders]     = useState([])
   const [products, setProducts] = useState([])
@@ -104,6 +106,11 @@ export default function Dashboard() {
 
   const recentOrders = orders.slice(0, 5)
 
+  function parseMoney(value) {
+    if (typeof value === 'number') return value
+    return parseFloat(String(value || 0).replace(/[^0-9.-]/g, '')) || 0
+  }
+
   function formatDate(ts) {
     if (!ts) return '—'
     return new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
@@ -174,7 +181,7 @@ export default function Dashboard() {
           <StatCard
             icon={FaDollarSign}
             label="Total Revenue"
-            value={stats?.revenue || '$0'}
+            value={formatPrice(parseMoney(stats?.revenue))}
             trend={12}
             color="bg-green-500"
           />
@@ -195,7 +202,7 @@ export default function Dashboard() {
           <StatCard
             icon={FaChartLine}
             label="Avg Order Value"
-            value={stats?.avgOrder || '$0'}
+            value={formatPrice(parseMoney(stats?.avgOrder))}
             trend={5}
             color="bg-amber-500"
           />
@@ -227,6 +234,7 @@ export default function Dashboard() {
                     borderRadius: '8px',
                     fontSize: '12px'
                   }}
+                  formatter={(value) => formatPrice(value)}
                 />
                 <Line 
                   type="monotone" 
@@ -301,8 +309,8 @@ export default function Dashboard() {
                   <div className="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-bold">
                     {i + 1}
                   </div>
-                  {p.image_url ? (
-                    <img src={p.image_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-border" />
+                  {p.images?.[0] || p.image_url ? (
+                    <img src={p.images?.[0] || p.image_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-border" />
                   ) : (
                     <div className="w-10 h-10 bg-[#f9f8f6] rounded-lg flex items-center justify-center text-xl border border-border">
                       {p.emoji}
@@ -312,7 +320,7 @@ export default function Dashboard() {
                     <p className="text-sm font-medium truncate">{p.name}</p>
                     <p className="text-xs text-muted">{p.stock} in stock</p>
                   </div>
-                  <p className="text-sm font-bold">${p.price}</p>
+                  <p className="text-sm font-bold">{formatPrice(p.price)}</p>
                 </div>
               ))}
             </div>
@@ -362,7 +370,7 @@ export default function Dashboard() {
                   recentOrders.map(o => (
                     <tr key={o.id} className="border-b border-border last:border-0 hover:bg-bg/60 transition-colors">
                       <td className="px-5 py-3 font-medium text-accent">{o.id}</td>
-                      <td className="px-5 py-3 font-medium">${Number(o.total).toFixed(2)}</td>
+                      <td className="px-5 py-3 font-medium">{formatPrice(o.total)}</td>
                       <td className="px-5 py-3"><StatusPill status={o.status} /></td>
                       <td className="px-5 py-3 text-muted">{formatDate(o.created_at)}</td>
                     </tr>

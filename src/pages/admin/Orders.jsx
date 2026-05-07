@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { fetchOrders, updateOrderStatus } from '../../data/api'
 import { supabase } from '../../lib/supabase'
+import { useSettings } from '../../context/SettingsContext'
 import { FaSync } from 'react-icons/fa'
 import StatusPill from '../../components/StatusPill'
 import Modal from '../../components/Modal'
@@ -8,6 +9,7 @@ import Modal from '../../components/Modal'
 const STATUSES = ['Processing', 'Delivered', 'Pending', 'Cancelled']
 
 export default function Orders() {
+  const { formatPrice } = useSettings()
   const [orders, setOrders]       = useState([])
   const [loading, setLoading]     = useState(true)
   const [search, setSearch]       = useState('')
@@ -125,7 +127,7 @@ export default function Orders() {
                 orders.map(o => (
                   <tr key={o.id} className="border-b border-border last:border-0 hover:bg-bg/60 transition-colors">
                     <td className="px-4 py-2.5 font-medium text-accent">{o.id}</td>
-                    <td className="px-4 py-2.5 font-medium">${Number(o.total).toFixed(2)}</td>
+                    <td className="px-4 py-2.5 font-medium">{formatPrice(o.total)}</td>
                     <td className="px-4 py-2.5"><StatusPill status={o.status} /></td>
                     <td className="px-4 py-2.5">
                       {o.tracking_number ? (
