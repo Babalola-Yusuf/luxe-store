@@ -199,6 +199,32 @@ export async function deleteProduct(productId) {
 
 // ── Customer Management ────────────────────────────────────
 
+export async function checkUserRole(userId, email) {
+  const { data, error } = await supabase
+    .from('customers')
+    .select('role')
+    .eq('id', userId)
+    .single()
+
+  if (!error && data?.role) {
+    return data.role.toLowerCase()
+  }
+
+  if (email) {
+    const { data: emailData, error: emailError } = await supabase
+      .from('customers')
+      .select('role')
+      .eq('email', email)
+      .single()
+
+    if (!emailError && emailData?.role) {
+      return emailData.role.toLowerCase()
+    }
+  }
+
+  return 'customer'
+}
+
 export async function createCustomer(customerData) {
   const { error } = await supabase
     .from('customers')
@@ -207,6 +233,7 @@ export async function createCustomer(customerData) {
       id: crypto.randomUUID(),
       joined: new Date().toISOString(),
       status: 'Active',
+      role: customerData.role || 'customer',
     })
 
   if (error) throw error
@@ -272,15 +299,14 @@ export async function fetchReviews(productId) {
   return data || []
 }
 
-export async function createReview({ productId, rating, title, comment }) {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Must be logged in to review')
+export async function createReview({ productId, rating, title, comment, userId }) {
+  if (!userId) throw new Error('Must be logged in to review')
 
   const { error } = await supabase
     .from('reviews')
     .insert({
       product_id: productId,
-      customer_id: user.id,
+      customer_id: userId,
       rating,
       title,
       comment,
@@ -291,38 +317,35 @@ export async function createReview({ productId, rating, title, comment }) {
 
 // ── Wishlist ──────────────────────────────────────────────
 
-export async function fetchWishlist() {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return []
+export async function fetchWishlist(userId) {
+  if (!userId) return []
 
   const { data, error } = await supabase
     .from('wishlist')
     .select('*, products(*)')
-    .eq('customer_id', user.id)
+    .eq('customer_id', userId)
 
   if (error) throw error
   return data || []
 }
 
-export async function addToWishlist(productId) {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Must be logged in')
+export async function addToWishlist(productId, userId) {
+  if (!userId) throw new Error('Must be logged in')
 
   const { error } = await supabase
     .from('wishlist')
-    .insert({ customer_id: user.id, product_id: productId })
+    .insert({ customer_id: userId, product_id: productId })
 
   if (error) throw error
 }
 
-export async function removeFromWishlist(productId) {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return
+export async function removeFromWishlist(productId, userId) {
+  if (!userId) return
 
   const { error } = await supabase
     .from('wishlist')
     .delete()
-    .eq('customer_id', user.id)
+    .eq('customer_id', userId)
     .eq('product_id', productId)
 
   if (error) throw error

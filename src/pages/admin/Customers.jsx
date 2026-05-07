@@ -13,7 +13,7 @@ export default function Customers() {
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [formData, setFormData]   = useState({
-    name: '', email: '', initials: '', color: COLORS[0], status: 'Active',
+    name: '', email: '', initials: '', color: COLORS[0], status: 'Active', role: 'customer',
   })
   const [saving, setSaving]     = useState(false)
   const [deleting, setDeleting] = useState(null)
@@ -40,7 +40,7 @@ export default function Customers() {
   function openAddModal() {
     setEditingId(null)
     setFormData({
-      name: '', email: '', initials: '', color: COLORS[0], status: 'Active',
+      name: '', email: '', initials: '', color: COLORS[0], status: 'Active', role: 'customer',
     })
     setShowModal(true)
   }
@@ -53,6 +53,7 @@ export default function Customers() {
       initials: customer.initials || '',
       color: customer.color || COLORS[0],
       status: customer.status || 'Active',
+      role: customer.role || 'customer',
     })
     setShowModal(true)
   }
@@ -66,6 +67,7 @@ export default function Customers() {
         initials: formData.initials,
         color: formData.color,
         status: formData.status,
+        role: formData.role,
       }
 
       if (editingId) {
@@ -227,17 +229,18 @@ export default function Customers() {
             />
           </div>
 
+          <div>
+            <label className="block text-xs text-muted mb-1">Initials</label>
+            <input
+              value={formData.initials}
+              onChange={set('initials')}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+              placeholder="AO"
+              maxLength={2}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-muted mb-1">Initials</label>
-              <input
-                value={formData.initials}
-                onChange={set('initials')}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                placeholder="AO"
-                maxLength={2}
-              />
-            </div>
             <div>
               <label className="block text-xs text-muted mb-1">Status</label>
               <select
@@ -247,6 +250,17 @@ export default function Customers() {
               >
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-muted mb-1">Role</label>
+              <select
+                value={formData.role}
+                onChange={set('role')}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand bg-surface"
+              >
+                <option value="customer">Customer</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
           </div>

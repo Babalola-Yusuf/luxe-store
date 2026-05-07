@@ -45,10 +45,10 @@ export default function ProductDetailModal({ product, isOpen, onClose, session }
     }
     try {
       if (inWishlist) {
-        await removeFromWishlist(product.id)
+        await removeFromWishlist(product.id, session.user.id)
         setInWishlist(false)
       } else {
-        await addToWishlist(product.id)
+        await addToWishlist(product.id, session.user.id)
         setInWishlist(true)
       }
     } catch (err) {
@@ -64,7 +64,8 @@ export default function ProductDetailModal({ product, isOpen, onClose, session }
     try {
       await createReview({
         productId: product.id,
-        ...reviewForm
+        userId: session.user.id,
+        ...reviewForm,
       })
       setShowReviewForm(false)
       setReviewForm({ rating: 5, title: '', comment: '' })

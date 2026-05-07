@@ -545,6 +545,51 @@ export default function Settings() {
         <div className="bg-surface rounded-xl border border-border p-6">
           <h3 className="font-semibold mb-4">Appearance</h3>
           <div className="space-y-4 max-w-2xl">
+            <div>
+              <label className="block text-xs text-muted mb-1">Logo URL</label>
+              <input
+                value={settings.appearance.logo || ''}
+                onChange={e => updateField('appearance', 'logo', e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                placeholder="https://example.com/logo.png"
+              />
+              {settings.appearance.logo && (
+                <div className="mt-2 p-3 bg-bg rounded-lg border border-border">
+                  <p className="text-xs text-muted mb-2">Preview:</p>
+                  <img
+                    src={settings.appearance.logo}
+                    alt="Logo preview"
+                    className="h-10 w-auto"
+                    onError={(e) => { e.target.style.display = 'none' }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted mb-1">Favicon URL</label>
+              <input
+                value={settings.appearance.favicon || ''}
+                onChange={e => updateField('appearance', 'favicon', e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                placeholder="https://example.com/favicon.ico"
+              />
+              {settings.appearance.favicon && (
+                <div className="mt-2 p-3 bg-bg rounded-lg border border-border">
+                  <p className="text-xs text-muted mb-2">Preview:</p>
+                  <img
+                    src={settings.appearance.favicon}
+                    alt="Favicon preview"
+                    className="h-8 w-8"
+                    onError={(e) => { e.target.style.display = 'none' }}
+                  />
+                </div>
+              )}
+              <p className="text-xs text-muted mt-2">
+                Recommended: 32x32 pixels or 64x64 pixels, .ico or .png format
+              </p>
+            </div>
+
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs text-muted mb-1">Primary Color</label>

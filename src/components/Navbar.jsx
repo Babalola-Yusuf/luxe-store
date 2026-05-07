@@ -1,104 +1,162 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useSettings } from '../context/SettingsContext'
+import { checkUserRole } from '../data/api'
 import { supabase } from '../lib/supabase'
 import { FaBars, FaTimes, FaShoppingCart } from 'react-icons/fa'
 
-export default function Navbar({ view, setView, session }) {
+export default function Navbar({ session }) {
   const { totalItems } = useCart()
   const { settings } = useSettings()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const isAdmin = session?.user?.email?.endsWith('@luxe.com')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [roleChecked, setRoleChecked] = useState(false)
+  const [checkedUserId, setCheckedUserId] = useState(null)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const user = session?.user
-  const meta = user?.user_metadata
-  const initials = meta?.first_name && meta?.last_name
-    ? `${meta.first_name[0]}${meta.last_name[0]}`.toUpperCase()
-    : user?.email?.[0]?.toUpperCase() ?? '?'
+  const { initials, displayName } = useMemo(() => {
+    const meta = user?.user_metadata
+    return {
+      initials: meta?.first_name && meta?.last_name
+        ? `${meta.first_name[0]}${meta.last_name[0]}`.toUpperCase()
+        : user?.email?.[0]?.toUpperCase() ?? '?',
+      displayName: meta?.first_name
+        ? meta.first_name
+        : user?.email?.split('@')[0] ?? '',
+    }
+  }, [user])
 
-  const displayName = meta?.first_name
-    ? meta.first_name
-    : user?.email?.split('@')[0] ?? ''
+  useEffect(() => {
+    let cancelled = false
+
+    async function checkAdmin() {
+      const userId = session?.user?.id
+
+      if (userId && (!roleChecked || checkedUserId !== userId)) {
+        try {
+          const role = await checkUserRole(userId, session.user.email)
+          if (cancelled) return
+          setIsAdmin(role === 'admin')
+          setRoleChecked(true)
+          setCheckedUserId(userId)
+        } catch (err) {
+          if (cancelled) return
+          console.error('Failed to check role:', err)
+          setIsAdmin(false)
+          setRoleChecked(true)
+          setCheckedUserId(userId)
+        }
+      } else if (!userId) {
+        setIsAdmin(false)
+        setRoleChecked(false)
+        setCheckedUserId(null)
+      }
+    }
+
+    checkAdmin()
+
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user?.id, roleChecked, checkedUserId])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
-    setView('store')
     setMobileMenuOpen(false)
+    setIsAdmin(false)
+    setRoleChecked(false)
+    setCheckedUserId(null)
+    navigate('/store')
   }
 
-  function navigate(to) {
-    setView(to)
-    setMobileMenuOpen(false)
+  function isActive(path) {
+    return location.pathname === path
   }
 
   return (
     <nav className="bg-brand text-white sticky top-0 z-50 shadow-lg">
       <div className="flex items-center justify-between px-4 h-14 max-w-7xl mx-auto">
         
-        {/* Logo - use settings */}
-        <button onClick={() => navigate('store')} className="font-display text-xl font-bold tracking-wide shrink-0">
-          {settings.general.storeName || 'Luxe'}
-        </button>
+        {/* Logo */}
+        <Link to="/store" className="flex items-center gap-2 shrink-0">
+          {settings.appearance?.logo ? (
+            <img 
+              src={settings.appearance.logo} 
+              alt={settings.general?.storeName || 'Logo'} 
+              className="h-8 w-auto"
+            />
+          ) : (
+            <span className="font-display text-xl font-bold tracking-wide">
+              {settings.general?.storeName || 'Luxe'}
+            </span>
+          )}
+        </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex gap-1 items-center">
-          <button
-            onClick={() => navigate('store')}
+          <Link
+            to="/store"
             className={`px-4 py-1.5 rounded-full text-sm transition-all ${
-              view === 'store' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
+              isActive('/store') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
           >
             Store
-          </button>
+          </Link>
 
           {session && !isAdmin && (
             <>
-              <button
-                onClick={() => navigate('my-orders')}
+              <Link
+                to="/my-orders"
                 className={`px-4 py-1.5 rounded-full text-sm transition-all ${
-                  view === 'my-orders' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
+                  isActive('/my-orders') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
                 My Orders
-              </button>
-              <button
-                onClick={() => navigate('wishlist')}
+              </Link>
+              <Link
+                to="/wishlist"
                 className={`px-4 py-1.5 rounded-full text-sm transition-all ${
-                  view === 'wishlist' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
+                  isActive('/wishlist') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
                 Wishlist
-              </button>
+              </Link>
             </>
           )}
 
-          <button
-            onClick={() => navigate('track-order')}
+          <Link
+            to="/track-order"
             className={`px-4 py-1.5 rounded-full text-sm transition-all ${
-              view === 'track-order' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
+              isActive('/track-order') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
           >
             Track
-          </button>
+          </Link>
 
-          <button
-            onClick={() => navigate('admin')}
+          {isAdmin && (
+            <Link
+            to="/admin"
             className={`px-4 py-1.5 rounded-full text-sm transition-all ${
-              view === 'admin' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
+              location.pathname.startsWith('/admin') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
             }`}
           >
             Admin
-          </button>
+          </Link>  
+          )}
+          
         </div>
 
-        {/* Right side */}
+        {/* Rest of navbar remains the same... */}
         <div className="flex items-center gap-2 sm:gap-3">
           
           {/* Desktop Auth */}
           {session ? (
             <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={() => !isAdmin && navigate('my-orders')}
+              <Link
+                to={isAdmin ? '/admin' : '/my-orders'}
                 title={user?.email}
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-full transition-all"
               >
@@ -109,7 +167,7 @@ export default function Navbar({ view, setView, session }) {
                   {displayName}
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
-              </button>
+              </Link>
               <button
                 onClick={handleSignOut}
                 title="Sign out"
@@ -120,26 +178,26 @@ export default function Navbar({ view, setView, session }) {
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={() => navigate('login')}
+              <Link
+                to="/login"
                 className={`px-4 py-1.5 rounded-full text-sm transition-all ${
-                  view === 'login' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
+                  isActive('/login') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
                 Sign in
-              </button>
-              <button
-                onClick={() => navigate('signup')}
+              </Link>
+              <Link
+                to="/signup"
                 className="px-4 py-1.5 rounded-full text-sm bg-white/15 border border-white/25 text-white hover:bg-white/25 transition-all"
               >
                 Sign up
-              </button>
+              </Link>
             </div>
           )}
 
           {/* Cart */}
-          <button
-            onClick={() => navigate('cart')}
+          <Link
+            to="/cart"
             className="relative bg-white/15 border border-white/25 text-white px-3 py-1.5 rounded-full text-sm hover:bg-white/25 transition-all flex items-center gap-2"
           >
             <FaShoppingCart />
@@ -149,7 +207,7 @@ export default function Navbar({ view, setView, session }) {
                 {totalItems}
               </span>
             )}
-          </button>
+          </Link>
 
           {/* Mobile menu button */}
           <button
@@ -165,60 +223,72 @@ export default function Navbar({ view, setView, session }) {
       {mobileMenuOpen && (
         <div className="md:hidden bg-brand border-t border-white/10">
           <div className="px-4 py-3 space-y-1">
-            <button
-              onClick={() => navigate('store')}
-              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                view === 'store' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
+            <Link
+              to="/store"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                isActive('/store') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
               }`}
             >
               Store
-            </button>
+            </Link>
 
             {session && !isAdmin && (
               <>
-                <button
-                  onClick={() => navigate('my-orders')}
-                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                    view === 'my-orders' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
+                <Link
+                  to="/my-orders"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                    isActive('/my-orders') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
                   }`}
                 >
                   My Orders
-                </button>
-                <button
-                  onClick={() => navigate('wishlist')}
-                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                    view === 'wishlist' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
+                </Link>
+                <Link
+                  to="/wishlist"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                    isActive('/wishlist') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
                   }`}
                 >
                   Wishlist
-                </button>
+                </Link>
               </>
             )}
 
-            <button
-              onClick={() => navigate('track-order')}
-              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                view === 'track-order' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
+            <Link
+              to="/track-order"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                isActive('/track-order') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
               }`}
             >
               Track Order
-            </button>
+            </Link>
 
-            <button
-              onClick={() => navigate('admin')}
-              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
-                view === 'admin' ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
-              }`}
+            
+            {isAdmin && (
+              <Link
+                to="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${
+                  location.pathname.startsWith('/admin') ? 'bg-accent text-white font-medium' : 'text-white/70 hover:bg-white/10'
+                }`}
             >
               Admin Portal
-            </button>
-
+            </Link>
+            )}
             <div className="border-t border-white/10 my-2 pt-2">
               {session ? (
                 <>
                   <div className="px-4 py-2 text-sm">
                     <p className="text-white/50 text-xs mb-1">Signed in as</p>
                     <p className="text-white font-medium">{displayName}</p>
+                    {isAdmin && (
+                      <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-accent text-white rounded-full">
+                        Admin
+                      </span>
+                    )}
                   </div>
                   <button
                     onClick={handleSignOut}
@@ -229,18 +299,20 @@ export default function Navbar({ view, setView, session }) {
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={() => navigate('login')}
-                    className="w-full text-left px-4 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/10 transition-all"
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full text-left px-4 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/10 transition-all"
                   >
                     Sign in
-                  </button>
-                  <button
-                    onClick={() => navigate('signup')}
-                    className="w-full text-left px-4 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/10 transition-all"
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full text-left px-4 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/10 transition-all"
                   >
                     Sign up
-                  </button>
+                  </Link>
                 </>
               )}
             </div>

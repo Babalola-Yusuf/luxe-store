@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { fetchProducts, validatePromoCode } from '../data/api'
 import { useSettings } from '../context/SettingsContext'
 import { FaShoppingCart, FaTrash, FaArrowRight, FaTruck, FaTimes } from 'react-icons/fa'
 
-export default function CartPage({ setView, setAppliedPromo }) {
+export default function CartPage({ setAppliedPromo }) {
+  const navigate = useNavigate()
   const { cart, changeQty, removeItem } = useCart()
   const { formatPrice, calculateShipping, calculateTax, settings } = useSettings()
   const [products, setProducts] = useState([])
@@ -83,7 +85,7 @@ export default function CartPage({ setView, setAppliedPromo }) {
     if (setAppliedPromo) {
       setAppliedPromo({ code: promoCode, discount: promoDiscount })
     }
-    setView('checkout')
+    navigate('/checkout')
   }
 
   if (items.length === 0) {
@@ -93,7 +95,7 @@ export default function CartPage({ setView, setAppliedPromo }) {
         <h2 className="font-display text-xl font-semibold mb-2">Your cart is empty</h2>
         <p className="text-muted text-sm mb-6">Add some products to get started.</p>
         <button
-          onClick={() => setView('store')}
+          onClick={() => navigate('/store')}
           className="bg-brand text-white px-6 py-2.5 rounded-full text-sm hover:bg-accent transition-colors flex items-center gap-2"
         >
           Continue Shopping <FaArrowRight />
@@ -111,7 +113,7 @@ export default function CartPage({ setView, setAppliedPromo }) {
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display text-2xl font-semibold">Shopping Cart</h2>
             <button
-              onClick={() => setView('store')}
+              onClick={() => navigate('/store')}
               className="text-sm text-accent hover:underline flex items-center gap-1"
             >
               Continue Shopping
@@ -299,7 +301,7 @@ export default function CartPage({ setView, setAppliedPromo }) {
             </button>
 
             <button
-              onClick={() => setView('store')}
+              onClick={() => navigate('/store')}
               className="w-full py-2.5 border border-border text-brand rounded-xl text-sm font-medium hover:bg-bg transition-colors"
             >
               Continue Shopping
@@ -316,7 +318,7 @@ export default function CartPage({ setView, setAppliedPromo }) {
             {recommendedProducts.map(p => (
               <div
                 key={p.id}
-                onClick={() => setView('store')}
+                onClick={() => navigate('/store')}
                 className="bg-surface rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all cursor-pointer"
               >
                 {p.images?.[0] || p.image_url ? (

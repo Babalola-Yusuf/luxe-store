@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSettings } from '../context/SettingsContext'
 import { supabase } from '../lib/supabase'
 
-export default function SuccessPage({ orderId, setView }) {
+export default function SuccessPage({ orderId }) {
+  const navigate = useNavigate()
   const { formatPrice, settings } = useSettings()
   const [order, setOrder] = useState(null)
 
@@ -42,7 +44,7 @@ export default function SuccessPage({ orderId, setView }) {
         </>
       )}
       <button
-        onClick={() => setView('store')}
+        onClick={() => navigate('/store')}
         className="mt-8 px-8 py-2.5 bg-brand text-white rounded-full text-sm hover:bg-accent transition-colors"
       >
         Continue Shopping

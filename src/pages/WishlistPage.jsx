@@ -1,34 +1,48 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { fetchWishlist, removeFromWishlist } from '../data/api'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import { FaHeart, FaShoppingCart, FaTrash } from 'react-icons/fa'
 
-export default function WishlistPage({ setView, session }) {
+export default function WishlistPage({ session }) {
+  const navigate = useNavigate()
   const { addToCart } = useCart()
+  const { formatPrice } = useSettings()
   const [wishlist, setWishlist] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!session) {
-      setView('login')
+      navigate('/login')
       return
     }
     loadWishlist()
-  }, [session])
+  }, [session, navigate])
 
   async function loadWishlist() {
+    if (!session?.user?.id) return
+    
     setLoading(true)
     try {
-      const data = await fetchWishlist()
+      const data = await fetchWishlist(session.user.id)
       setWishlist(data)
+    } catch (err) {
+      console.error('Failed to load wishlist:', err)
     } finally {
       setLoading(false)
     }
   }
 
   async function handleRemove(productId) {
-    await removeFromWishlist(productId)
-    await loadWishlist()
+    if (!session?.user?.id) return
+    
+    try {
+      await removeFromWishlist(productId, session.user.id)
+      await loadWishlist()
+    } catch (err) {
+      console.error('Failed to remove from wishlist:', err)
+    }
   }
 
   async function handleAddToCart(productId) {
@@ -65,7 +79,7 @@ export default function WishlistPage({ setView, session }) {
             Save items you love to buy them later
           </p>
           <button
-            onClick={() => setView('store')}
+            onClick={() => navigate('/store')}
             className="bg-brand text-white px-6 py-2.5 rounded-full text-sm hover:bg-accent transition-colors"
           >
             Start Shopping
@@ -75,22 +89,22 @@ export default function WishlistPage({ setView, session }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {wishlist.map(item => {
             const p = item.products
+            if (!p) return null
+            
             return (
               <div
                 key={item.id}
                 className="bg-surface rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all group"
               >
-                {/* Product image */}
                 <div className="relative h-48 bg-[#f9f8f6]">
-                  {p.image_url ? (
-                    <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                  {p.images?.[0] || p.image_url ? (
+                    <img src={p.images?.[0] || p.image_url} alt={p.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-5xl">
                       {p.emoji}
                     </div>
                   )}
                   
-                  {/* Remove button */}
                   <button
                     onClick={() => handleRemove(p.id)}
                     className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -99,10 +113,9 @@ export default function WishlistPage({ setView, session }) {
                   </button>
                 </div>
 
-                {/* Product info */}
                 <div className="p-4">
                   <p className="font-medium text-sm mb-2 line-clamp-2">{p.name}</p>
-                  <p className="text-base font-bold text-accent mb-3">${p.price}</p>
+                  <p className="text-base font-bold text-accent mb-3">{formatPrice(p.price)}</p>
                   
                   <button
                     onClick={() => handleAddToCart(p.id)}

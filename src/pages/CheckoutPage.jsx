@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useCart } from '../context/CartContext'
@@ -262,7 +263,8 @@ function PaymentForm({ total, promoCode, onSuccess, form, setForm, formErrors, s
   )
 }
 
-export default function CheckoutPage({ setView, setOrderId, appliedPromo }) {
+export default function CheckoutPage({ setOrderId, appliedPromo }) {
+  const navigate = useNavigate()
   const { cart } = useCart()
   const { formatPrice, calculateShipping, calculateTax, settings } = useSettings()
   const hasRun = useRef(false)
@@ -361,7 +363,7 @@ export default function CheckoutPage({ setView, setOrderId, appliedPromo }) {
 
   function handleSuccess() {
     setOrderId(currentOrderId)
-    setView('success')
+    navigate('/success')
   }
 
   if (items.length === 0) {
@@ -369,7 +371,7 @@ export default function CheckoutPage({ setView, setOrderId, appliedPromo }) {
       <div className="text-center py-20 px-6">
         <p className="text-muted text-sm">Your cart is empty.</p>
         <button
-          onClick={() => setView('store')}
+          onClick={() => navigate('/store')}
           className="mt-4 bg-brand text-white px-6 py-2.5 rounded-full text-sm hover:bg-accent transition-colors"
         >
           Back to Store

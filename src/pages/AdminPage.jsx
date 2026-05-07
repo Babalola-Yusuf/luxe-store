@@ -1,77 +1,94 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { checkUserRole } from '../data/api'
 import Dashboard from './admin/Dashboard'
-import Orders    from './admin/Orders'
-import Products  from './admin/Products'
+import Products from './admin/Products'
+import Orders from './admin/Orders'
 import Customers from './admin/Customers'
-import Settings  from './admin/Settings'
+import Settings from './admin/Settings'
+import AdminSidebar from '../components/AdminSidebar'
 
-const NAV_ITEMS = [
-  { id: 'dashboard', icon: '📊', label: 'Dashboard' },
-  { id: 'orders',    icon: '📦', label: 'Orders',    dot: true },
-  { id: 'products',  icon: '🏷️', label: 'Products'  },
-  { id: 'customers', icon: '👥', label: 'Customers' },
-  { id: 'settings',  icon: '⚙️', label: 'Settings'  },
-]
+export default function AdminPage({ session }) {
+  const [userRole, setUserRole] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-const SECTION_MAP = {
-  dashboard: Dashboard,
-  orders:    Orders,
-  products:  Products,
-  customers: Customers,
-  settings:  Settings,
-}
+  useEffect(() => {
+    async function checkRole() {
+      if (session?.user?.id) {
+        const role = await checkUserRole(session.user.id, session.user.email)
+        setUserRole(role)
+      }
+      setLoading(false)
+    }
+    checkRole()
+  }, [session])
 
-export default function AdminPage() {
-  const [activeSection, setActiveSection] = useState('dashboard')
-  const ActiveComponent = SECTION_MAP[activeSection]
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin w-8 h-8 border-4 border-brand border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
+  if (!session) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <div className="text-center">
+          <h2 className="font-display text-2xl font-bold mb-2">Sign In Required</h2>
+          <p className="text-muted mb-4">Please sign in to access the admin portal.</p>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="px-6 py-2.5 bg-brand text-white rounded-lg font-medium hover:bg-accent transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (userRole !== 'admin') {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <div className="text-center max-w-md">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-4xl">🔒</span>
+          </div>
+          <h2 className="font-display text-2xl font-bold mb-2">Access Denied</h2>
+          <p className="text-muted mb-4">
+            You need admin privileges to access this page.
+          </p>
+          <p className="text-sm text-muted mb-6">
+            Contact an administrator at <strong>{'{store email}'}</strong> to request access.
+          </p>
+          <button
+            onClick={() => window.location.href = '/store'}
+            className="px-6 py-2.5 bg-brand text-white rounded-lg font-medium hover:bg-accent transition-colors"
+          >
+            Back to Store
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex flex-col sm:flex-row min-h-[calc(100vh-56px)]">
-      {/* Sidebar — horizontal on mobile, vertical on sm+ */}
-      <aside className="bg-brand text-white flex sm:flex-col overflow-x-auto sm:overflow-x-visible sm:w-44 shrink-0">
-        <div className="hidden sm:block px-5 py-4 font-display text-base font-semibold border-b border-white/10 mb-1">
-          Admin
+    <div className="flex min-h-screen bg-bg">
+      <AdminSidebar />
+      
+      <div className="flex-1 lg:ml-64">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          <Routes>
+            <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
         </div>
-
-        <div className="hidden sm:block">
-          <p className="px-5 py-2 text-[10px] text-white/35 uppercase tracking-widest">Overview</p>
-        </div>
-
-        {NAV_ITEMS.map((item, idx) => {
-          const isActive = activeSection === item.id
-          const showDivider = idx === 0 // divider after dashboard on desktop
-          return (
-            <div key={item.id}>
-              {showDivider && idx > 0 && (
-                <div className="hidden sm:block h-px bg-white/10 mx-4 my-1" />
-              )}
-              <button
-                onClick={() => setActiveSection(item.id)}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-2.5 text-[12px] sm:text-[13px] whitespace-nowrap w-auto sm:w-full transition-all
-                  border-b-2 sm:border-b-0 sm:border-r-2
-                  ${isActive
-                    ? 'bg-white/10 text-white border-accent'
-                    : 'text-white/65 border-transparent hover:bg-white/6 hover:text-white'
-                  }`}
-              >
-                <span className="text-base">{item.icon}</span>
-                <span className="hidden xs:inline sm:inline">{item.label}</span>
-                {item.dot && (
-                  <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-accent ml-auto" />
-                )}
-              </button>
-              {idx === 0 && (
-                <div className="hidden sm:block h-px bg-white/10 mx-4 my-1" />
-              )}
-            </div>
-          )
-        })}
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 bg-bg p-4 sm:p-5 lg:p-7 overflow-auto">
-        <ActiveComponent />
-      </main>
+      </div>
     </div>
   )
 }
