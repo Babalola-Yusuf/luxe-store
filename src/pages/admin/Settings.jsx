@@ -5,7 +5,7 @@ import Modal from '../../components/Modal'
 import { useSettings as useSettingsContext } from '../../context/SettingsContext'
 
 export default function Settings() {
-  const { refreshSettings } = useSettingsContext()
+  const { refreshSettings, getCurrencySymbol } = useSettingsContext()
   const [settings, setSettings] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(null)
@@ -30,6 +30,7 @@ export default function Settings() {
     { id: 'appearance', label: 'Appearance' },
     { id: 'maintenance', label: 'Maintenance' },
   ]
+  const currencySymbol = getCurrencySymbol()
 
   useEffect(() => {
     loadSettings()
@@ -356,7 +357,7 @@ export default function Settings() {
           <h3 className="font-semibold mb-4">Shipping Settings</h3>
           <div className="space-y-4 max-w-2xl">
             <div>
-              <label className="block text-xs text-muted mb-1">Free Shipping Threshold ($)</label>
+              <label className="block text-xs text-muted mb-1">Free Shipping Threshold ({currencySymbol})</label>
               <input
                 type="number"
                 step="0.01"
@@ -367,7 +368,7 @@ export default function Settings() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-muted mb-1">Standard Shipping Rate ($)</label>
+                <label className="block text-xs text-muted mb-1">Standard Shipping Rate ({currencySymbol})</label>
                 <input
                   type="number"
                   step="0.01"
@@ -377,7 +378,7 @@ export default function Settings() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-muted mb-1">Express Shipping Rate ($)</label>
+                <label className="block text-xs text-muted mb-1">Express Shipping Rate ({currencySymbol})</label>
                 <input
                   type="number"
                   step="0.01"

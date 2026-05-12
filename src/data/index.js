@@ -74,33 +74,49 @@ export async function updateOrderStatus(orderId, status) {
 }
 
 export async function placeOrder({ cartItems, total }) {
-  const orderId = '#ORD-' + (1000 + Math.floor(Math.random() * 9000))
+  const orderId = `ORD-${Date.now()}`
 
-  // Get the current user if logged in
-  const { data: { user } } = await supabase.auth.getUser()
+  let customerId = null
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('id', user.id)
+        .single()
 
-  const { error: orderError } = await supabase
+      if (customer) {
+        customerId = user.id
+      }
+    }
+  } catch (err) {
+    console.log('No authenticated user or customer record')
+  }
+
+  const { error } = await supabase
     .from('orders')
     .insert({
-      id:          orderId,
+      id: orderId,
+      customer_id: customerId,
       total,
-      status:      'Pending',
-      customer_id: user?.id ?? null,
+      status: 'Pending',
+      created_at: new Date().toISOString(),
     })
 
-  if (orderError) throw orderError
+  if (error) throw error
 
-  const items = cartItems.map(([productId, quantity]) => ({
-    order_id:   orderId,
-    product_id: Number(productId),
-    quantity,
-  }))
+  for (const [productId, qty] of cartItems) {
+    const { error: itemError } = await supabase
+      .from('order_items')
+      .insert({
+        order_id: orderId,
+        product_id: parseInt(productId),
+        quantity: qty,
+      })
 
-  const { error: itemsError } = await supabase
-    .from('order_items')
-    .insert(items)
-
-  if (itemsError) throw itemsError
+    if (itemError) console.error('Failed to insert order item:', itemError)
+  }
 
   return orderId
 }

@@ -315,9 +315,11 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
       const t = Math.max(0, parseFloat((sub + ship + taxAmount - discountAmount).toFixed(2)))
 
       try {
+        // Create order (works for both logged in and anonymous users)
         const orderId = await placeOrder({ cartItems: items, total: t })
         setCurrentOrderId(orderId)
 
+        // Get currency from settings (default to USD)
         const currency = settings.general?.currency || 'USD'
         const secret = await createPaymentIntent({
           amount: t,

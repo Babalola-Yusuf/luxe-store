@@ -1,82 +1,115 @@
-export default function Footer() {
-  return (
-    <footer className="bg-brand text-white/75 pt-10 px-4 sm:px-6 lg:px-10">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-8 border-b border-white/10">
+{/* Enhanced Footer */}
+<footer className="bg-brand text-white mt-auto">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    {/* Main Footer Content */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-12">
+      
+      {/* About Section */}
+      <div>
+        <h3 className="font-display font-bold text-lg mb-4">
+          {settings.general?.storeName || 'Luxe Store'}
+        </h3>
+        <p className="text-white/70 text-sm mb-4 leading-relaxed">
+          {settings.general?.storeDescription || 'Premium lifestyle products curated for style and quality.'}
+        </p>
+        <div className="flex gap-3">
+          <a href="#" className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="Facebook">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </a>
+          <a href="#" className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="Twitter">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+            </svg>
+          </a>
+          <a href="#" className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="Instagram">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
 
-        {/* Brand */}
-        <div>
-          <span className="font-display text-2xl font-bold text-white block mb-2">
-            Lu<span className="text-accent2">x</span>e
-          </span>
-          <p className="text-sm text-white/55 leading-relaxed max-w-[200px]">
-            Curated premium products delivered to your door. Quality you can trust.
-          </p>
-          <div className="flex gap-2 mt-3 flex-wrap">
-            {['Visa', 'Mastercard', 'PayPal', 'Flutterwave'].map((b) => (
-              <span key={b} className="px-2 py-0.5 border border-white/15 rounded text-[11px] text-white/50">{b}</span>
-            ))}
+      {/* Shop Section */}
+      <div>
+        <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">Shop</h4>
+        <ul className="space-y-2">
+          <li><Link to="/store" className="text-white/70 hover:text-white text-sm transition-colors">All Products</Link></li>
+          <li><Link to="/store?category=tech" className="text-white/70 hover:text-white text-sm transition-colors">Tech</Link></li>
+          <li><Link to="/store?category=fashion" className="text-white/70 hover:text-white text-sm transition-colors">Fashion</Link></li>
+          <li><Link to="/store?category=home" className="text-white/70 hover:text-white text-sm transition-colors">Home & Living</Link></li>
+          <li><Link to="/store?category=beauty" className="text-white/70 hover:text-white text-sm transition-colors">Beauty</Link></li>
+        </ul>
+      </div>
+
+      {/* Customer Service */}
+      <div>
+        <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">Customer Service</h4>
+        <ul className="space-y-2">
+          <li><Link to="/track-order" className="text-white/70 hover:text-white text-sm transition-colors">Track Order</Link></li>
+          <li><Link to="/my-orders" className="text-white/70 hover:text-white text-sm transition-colors">My Orders</Link></li>
+          <li><Link to="/wishlist" className="text-white/70 hover:text-white text-sm transition-colors">Wishlist</Link></li>
+          <li><a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Shipping Info</a></li>
+          <li><a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Returns & Refunds</a></li>
+          <li><a href="#" className="text-white/70 hover:text-white text-sm transition-colors">FAQs</a></li>
+        </ul>
+      </div>
+
+      {/* Contact & Newsletter */}
+      <div>
+        <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">Stay Connected</h4>
+        <div className="space-y-3 mb-4">
+          <div className="flex items-start gap-2 text-sm text-white/70">
+            <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span>{settings.general?.contactEmail || 'support@luxe.com'}</span>
           </div>
-          <div className="flex gap-2 mt-4">
-            {['IG', 'X', 'FB', 'TK'].map((s) => (
-              <button key={s} className="w-8 h-8 rounded-full border border-white/20 text-white/70 text-xs hover:bg-accent hover:border-accent hover:text-white transition-all">
-                {s}
-              </button>
-            ))}
+          <div className="flex items-start gap-2 text-sm text-white/70">
+            <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            <span>{settings.general?.contactPhone || '+1 (555) 123-4567'}</span>
+          </div>
+          <div className="flex items-start gap-2 text-sm text-white/70">
+            <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>{settings.general?.address || '123 Main St, City, Country'}</span>
           </div>
         </div>
 
-        {/* Shop */}
+        {/* Newsletter */}
         <div>
-          <h4 className="text-xs font-medium text-white uppercase tracking-widest mb-3">Shop</h4>
-          <ul className="space-y-2">
-            {['New Arrivals', 'Tech', 'Fashion', 'Home & Living', 'Beauty', 'Sports', 'Sale'].map((l) => (
-              <li key={l}><a className="text-sm text-white/55 hover:text-white cursor-pointer transition-colors">{l}</a></li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Support */}
-        <div>
-          <h4 className="text-xs font-medium text-white uppercase tracking-widest mb-3">Support</h4>
-          <ul className="space-y-2">
-            {['Track My Order', 'Returns & Refunds', 'Shipping Info', 'Size Guide', 'FAQs', 'Contact Us'].map((l) => (
-              <li key={l}><a className="text-sm text-white/55 hover:text-white cursor-pointer transition-colors">{l}</a></li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Newsletter + Company */}
-        <div>
-          <h4 className="text-xs font-medium text-white uppercase tracking-widest mb-3">Stay in the loop</h4>
-          <p className="text-xs text-white/45 leading-relaxed mb-3">
-            Get exclusive deals and new arrivals in your inbox.
-          </p>
-          <div className="flex">
+          <p className="text-xs text-white/70 mb-2">Subscribe to our newsletter</p>
+          <div className="flex gap-2">
             <input
-              className="flex-1 px-3 py-2 text-xs bg-white/7 border border-white/20 rounded-l-lg text-white placeholder-white/35 outline-none border-r-0"
-              placeholder="your@email.com"
+              type="email"
+              placeholder="Your email"
+              className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder:text-white/50 outline-none focus:border-white/40 transition-colors"
             />
-            <button className="px-3 py-2 bg-accent text-white text-xs rounded-r-lg whitespace-nowrap hover:opacity-85 transition-opacity">
+            <button className="px-4 py-2 bg-accent hover:bg-accent2 rounded-lg text-sm font-medium transition-colors">
               Subscribe
             </button>
           </div>
-          <h4 className="text-xs font-medium text-white uppercase tracking-widest mt-5 mb-3">Company</h4>
-          <ul className="space-y-2">
-            {['About Us', 'Careers', 'Press'].map((l) => (
-              <li key={l}><a className="text-sm text-white/55 hover:text-white cursor-pointer transition-colors">{l}</a></li>
-            ))}
-          </ul>
         </div>
       </div>
+    </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 py-4 text-xs text-white/35">
-        <span>© 2026 Luxe Store. All rights reserved.</span>
-        <div className="flex flex-wrap justify-center gap-4">
-          {['Privacy Policy', 'Terms of Service', 'Cookie Settings'].map((l) => (
-            <a key={l} className="hover:text-white/70 cursor-pointer transition-colors">{l}</a>
-          ))}
+    {/* Bottom Bar */}
+    <div className="border-t border-white/10 py-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/60">
+        <p>
+          © {new Date().getFullYear()} {settings.general?.storeName || 'Luxe Store'}. All rights reserved.
+        </p>
+        <div className="flex gap-6">
+          <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+          <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
         </div>
       </div>
-    </footer>
-  )
-}
+    </div>
+  </div>
+</footer>

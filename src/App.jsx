@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import { CartProvider } from './context/CartContext'
 import { SettingsProvider, useSettings } from './context/SettingsContext'
@@ -129,30 +129,100 @@ function AppContent() {
         </Routes>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-surface border-t border-border py-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
-            <div>
-              <h3 className="font-display font-bold text-lg mb-2">{settings.general?.storeName || 'Luxe Store'}</h3>
-              <p className="text-sm text-muted">{settings.general?.storeDescription || 'Premium lifestyle products'}</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm mb-2">Contact</h4>
-              <p className="text-xs text-muted">{settings.general?.contactEmail}</p>
-              <p className="text-xs text-muted">{settings.general?.contactPhone}</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm mb-2">Address</h4>
-              <p className="text-xs text-muted">{settings.general?.address}</p>
+      <EnhancedFooter settings={settings} />
+    </div>
+  )
+}
+
+function EnhancedFooter({ settings }) {
+  return (
+    <footer className="bg-brand text-white mt-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-12">
+          <div>
+            <h3 className="font-display font-bold text-lg mb-4">
+              {settings.general?.storeName || 'Luxe Store'}
+            </h3>
+            <p className="text-white/70 text-sm mb-4 leading-relaxed">
+              {settings.general?.storeDescription || 'Premium lifestyle products curated for style and quality.'}
+            </p>
+            <div className="flex gap-3">
+              {['Facebook', 'Twitter', 'Instagram'].map(label => (
+                <a
+                  key={label}
+                  href="#"
+                  className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+                  aria-label={label}
+                >
+                  <span className="text-xs font-bold">{label[0]}</span>
+                </a>
+              ))}
             </div>
           </div>
-          <div className="mt-6 pt-6 border-t border-border text-center text-xs text-muted">
-            © {new Date().getFullYear()} {settings.general?.storeName || 'Luxe Store'}. All rights reserved.
+
+          <div>
+            <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">Shop</h4>
+            <ul className="space-y-2">
+              {['All Products', 'Tech', 'Fashion', 'Home & Living', 'Beauty'].map(label => (
+                <li key={label}>
+                  <Link to="/store" className="text-white/70 hover:text-white text-sm transition-colors">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">Customer Service</h4>
+            <ul className="space-y-2">
+              <li><Link to="/track-order" className="text-white/70 hover:text-white text-sm transition-colors">Track Order</Link></li>
+              <li><Link to="/my-orders" className="text-white/70 hover:text-white text-sm transition-colors">My Orders</Link></li>
+              <li><Link to="/wishlist" className="text-white/70 hover:text-white text-sm transition-colors">Wishlist</Link></li>
+              <li><a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Shipping Info</a></li>
+              <li><a href="#" className="text-white/70 hover:text-white text-sm transition-colors">Returns & Refunds</a></li>
+              <li><a href="#" className="text-white/70 hover:text-white text-sm transition-colors">FAQs</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-sm mb-4 uppercase tracking-wider">Stay Connected</h4>
+            <div className="space-y-3 mb-4 text-sm text-white/70">
+              <p>{settings.general?.contactEmail || 'support@luxe.com'}</p>
+              <p>{settings.general?.contactPhone || '+1 (555) 123-4567'}</p>
+              <p>{settings.general?.address || '123 Main St, City, Country'}</p>
+            </div>
+
+            <div>
+              <p className="text-xs text-white/70 mb-2">Subscribe to our newsletter</p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="Your email"
+                  className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder:text-white/50 outline-none focus:border-white/40 transition-colors"
+                />
+                <button className="px-4 py-2 bg-accent hover:bg-accent2 rounded-lg text-sm font-medium transition-colors">
+                  Subscribe
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </footer>
-    </div>
+
+        <div className="border-t border-white/10 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/60">
+            <p>
+              © {new Date().getFullYear()} {settings.general?.storeName || 'Luxe Store'}. All rights reserved.
+            </p>
+            <div className="flex gap-6">
+              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+              <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
   )
 }
 

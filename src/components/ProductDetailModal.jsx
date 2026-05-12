@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { FaTimes, FaShoppingCart, FaHeart, FaRegHeart, FaStar, FaStarHalfAlt } from 'react-icons/fa'
 import { useCart } from '../context/CartContext'
+import { useSettings } from '../context/SettingsContext'
 import { fetchReviews, createReview, addToWishlist, removeFromWishlist } from '../data/api'
 
 export default function ProductDetailModal({ product, isOpen, onClose, session }) {
   const { addToCart } = useCart()
+  const { formatPrice } = useSettings()
   const [activeImage, setActiveImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [reviews, setReviews] = useState([])
@@ -81,7 +83,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, session }
     : 0
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -89,7 +91,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, session }
       />
 
       {/* Modal */}
-      <div className="relative bg-surface border border-border rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden my-8">
+      <div className="relative bg-surface border border-border sm:rounded-2xl rounded-t-2xl shadow-2xl w-full sm:max-w-5xl max-h-[90vh] overflow-hidden">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -98,7 +100,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, session }
           <FaTimes />
         </button>
 
-        <div className="overflow-y-auto max-h-[90vh]">
+        <div className="overflow-y-auto max-h-[calc(90vh-64px)]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 sm:p-8">
             
             {/* Left: Image gallery */}
@@ -170,10 +172,10 @@ export default function ProductDetailModal({ product, isOpen, onClose, session }
 
               {/* Price */}
               <div className="flex items-baseline gap-3 mb-6">
-                <span className="text-3xl font-bold text-accent">${product.price}</span>
+                <span className="text-3xl font-bold text-accent">{formatPrice(product.price)}</span>
                 {product.original_price && (
                   <span className="text-xl text-muted line-through">
-                    ${product.original_price}
+                    {formatPrice(product.original_price)}
                   </span>
                 )}
               </div>

@@ -37,26 +37,37 @@ export default function SignUpPage() {
       })
 
       if (authError) throw authError
+      if (!authData.user) throw new Error('Failed to create user')
 
       // Create customer record
       const initials = `${formData.firstName[0]}${formData.lastName[0]}`.toUpperCase()
       const colors = ['#1a1a2e', '#e94560', '#f5a623', '#16a34a', '#7c3aed', '#0891b2', '#db2777']
       const randomColor = colors[Math.floor(Math.random() * colors.length)]
 
-      const { error: customerError } = await supabase
+      const { data: existingCustomer } = await supabase
         .from('customers')
-        .insert({
-          id: authData.user.id,
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          initials,
-          color: randomColor,
-          joined: new Date().toISOString(),
-          status: 'Active',
-          role: 'customer', // Ensure role is set
-        })
+        .select('id')
+        .eq('id', authData.user.id)
+        .single()
 
-      if (customerError) throw customerError
+      if (!existingCustomer) {
+        const { error: customerError } = await supabase
+          .from('customers')
+          .insert({
+            id: authData.user.id,
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email,
+            initials,
+            color: randomColor,
+            joined: new Date().toISOString(),
+            status: 'Active',
+            role: 'customer',
+          })
+
+        if (customerError) {
+          console.error('Failed to create customer record:', customerError)
+        }
+      }
 
       // Navigate to store on success
       navigate('/store')
