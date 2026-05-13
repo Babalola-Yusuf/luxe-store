@@ -193,18 +193,15 @@ export default function Settings() {
               <div>
                 <label className="block text-xs text-muted mb-1">Currency</label>
                 <select
-                  value={settings.general.currency || 'USD'}
+                  value={settings.general?.currency || 'NGN'}
                   onChange={e => updateField('general', 'currency', e.target.value)}
                   className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand bg-surface"
                 >
-                  <option value="USD">USD - US Dollar ($)</option>
-                  <option value="EUR">EUR - Euro (€)</option>
-                  <option value="GBP">GBP - British Pound (£)</option>
-                  <option value="NGN">NGN - Nigerian Naira (₦)</option>
-                  <option value="JPY">JPY - Japanese Yen (¥)</option>
-                  <option value="CAD">CAD - Canadian Dollar (CA$)</option>
-                  <option value="AUD">AUD - Australian Dollar (A$)</option>
-                  <option value="INR">INR - Indian Rupee (₹)</option>
+                  <option value="NGN">Nigerian Naira (₦)</option>
+                  <option value="USD">US Dollar ($)</option>
+                  <option value="GHS">Ghanaian Cedi (GH₵)</option>
+                  <option value="KES">Kenyan Shilling (KSh)</option>
+                  <option value="ZAR">South African Rand (R)</option>
                 </select>
               </div>
               <div>

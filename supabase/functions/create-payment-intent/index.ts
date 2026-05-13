@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   try {
     const { amount, orderId, currency = 'usd' } = await req.json()
 
-    const supportedCurrencies = ['usd', 'eur', 'gbp', 'ngn', 'jpy', 'cad', 'aud']
+    const supportedCurrencies = ['usd', 'eur', 'gbp', 'ngn', 'ghs', 'kes', 'zar', 'jpy', 'cad', 'aud']
     const currencyToUse = supportedCurrencies.includes(currency.toLowerCase())
       ? currency.toLowerCase()
       : 'usd'
