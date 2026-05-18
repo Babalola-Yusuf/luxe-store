@@ -1,51 +1,74 @@
-import { createContext, useContext, useReducer } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 
-const CartContext = createContext(null)
-
-function cartReducer(state, action) {
-  switch (action.type) {
-    case 'ADD': {
-      const qty = (state[action.id] || 0) + 1
-      return { ...state, [action.id]: qty }
-    }
-    case 'CHANGE': {
-      const qty = Math.max(0, (state[action.id] || 0) + action.delta)
-      if (qty === 0) {
-        const next = { ...state }
-        delete next[action.id]
-        return next
-      }
-      return { ...state, [action.id]: qty }
-    }
-    case 'REMOVE': {
-      const next = { ...state }
-      delete next[action.id]
-      return next
-    }
-    case 'CLEAR':
-      return {}
-    default:
-      return state
-  }
-}
+const CartContext = createContext()
 
 export function CartProvider({ children }) {
-  const [cart, dispatch] = useReducer(cartReducer, {})
+  const [items, setItems] = useState(() => {
+    // Initialize from localStorage
+    try {
+      const saved = localStorage.getItem('cart-items')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
 
-  const addToCart   = (id)          => dispatch({ type: 'ADD',    id })
-  const changeQty   = (id, delta)   => dispatch({ type: 'CHANGE', id, delta })
-  const removeItem  = (id)          => dispatch({ type: 'REMOVE', id })
-  const clearCart   = ()            => dispatch({ type: 'CLEAR' })
+  // Save to localStorage whenever items change
+  useEffect(() => {
+    localStorage.setItem('cart-items', JSON.stringify(items))
+  }, [items])
 
-  const totalItems = Object.values(cart).reduce((a, b) => a + b, 0)
+  function addToCart(productId, quantity = 1) {
+    setItems(prev => {
+      const existing = prev.find(([id]) => id === productId)
+      if (existing) {
+        return prev.map(([id, qty]) => 
+          id === productId ? [id, qty + quantity] : [id, qty]
+        )
+      }
+      return [...prev, [productId, quantity]]
+    })
+  }
+
+  function removeFromCart(productId) {
+    setItems(prev => prev.filter(([id]) => id !== productId))
+  }
+
+  function updateQuantity(productId, quantity) {
+    if (quantity <= 0) {
+      removeFromCart(productId)
+      return
+    }
+    setItems(prev => 
+      prev.map(([id, qty]) => id === productId ? [id, quantity] : [id, qty])
+    )
+  }
+
+  function clearCart() {
+    setItems([])
+    localStorage.removeItem('cart-items')
+  }
+
+  const totalItems = items.reduce((sum, [, qty]) => sum + qty, 0)
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, changeQty, removeItem, clearCart, totalItems }}>
+    <CartContext.Provider value={{ 
+      items, 
+      addToCart, 
+      removeFromCart, 
+      updateQuantity, 
+      clearCart, 
+      totalItems 
+    }}>
       {children}
     </CartContext.Provider>
   )
 }
 
 export function useCart() {
-  return useContext(CartContext)
+  const context = useContext(CartContext)
+  if (!context) {
+    throw new Error('useCart must be used within CartProvider')
+  }
+  return context
 }

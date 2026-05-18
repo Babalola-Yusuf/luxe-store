@@ -8,7 +8,7 @@ import { FaCheckCircle, FaShieldAlt, FaUndo, FaTruck } from 'react-icons/fa'
 
 export default function CheckoutPage({ setOrderId, appliedPromo }) {
   const navigate = useNavigate()
-  const { items, clearCart } = useCart()
+  const { items = [], clearCart } = useCart()
   const { formatPrice, calculateShipping, calculateTax, settings } = useSettings()
   
   const [step, setStep] = useState(1)
@@ -34,7 +34,7 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
     if (hasRun.current) return
     hasRun.current = true
 
-    if (items.length === 0) {
+    if (!items || items.length === 0) {
       setPreparing(false)
       return
     }
@@ -60,15 +60,19 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
       } finally {
         setPreparing(false)
       }
+    }).catch((err) => {
+      setError(err.message)
+      setPreparing(false)
     })
   }, [])
 
   const set = (key) => (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }))
 
-  const subtotal = items.reduce((sum, [id, qty]) => {
+  // Safety check: ensure items is an array before using reduce
+  const subtotal = Array.isArray(items) ? items.reduce((sum, [id, qty]) => {
     const p = products.find(x => x.id === Number(id))
     return sum + (p ? p.price * qty : 0)
-  }, 0)
+  }, 0) : 0
 
   const shipping = calculateShipping(subtotal)
   const tax = calculateTax(subtotal)
@@ -79,9 +83,10 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
   const paystackConfig = {
     reference: currentOrderId || `ORD-${Date.now()}`,
     email: formData.email,
-    amount: Math.round(total * 100), // Paystack expects amount in kobo (smallest currency unit)
+    amount: Math.round(total * 100), // Amount in kobo
     publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
     currency: settings.general?.currency || 'NGN',
+    channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
     metadata: {
       custom_fields: [
         {
@@ -116,7 +121,7 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
           reference: reference.reference,
           status: 'success',
           order_id: currentOrderId
-          }
+        }
       })
     })
 
@@ -136,7 +141,8 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
     onClose: handlePaystackClose,
   }
 
-  if (items.length === 0) {
+  // Early return for empty cart
+  if (!items || items.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <h2 className="font-display text-2xl font-bold mb-4">Your cart is empty</h2>
@@ -369,4 +375,4 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
       </div>
     </div>
   )
-}   
+}

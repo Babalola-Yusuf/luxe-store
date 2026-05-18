@@ -1,27 +1,33 @@
 import { useState, useEffect } from 'react'
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../../data/api'
 import { useSettings } from '../../context/SettingsContext'
-import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaImage } from 'react-icons/fa'
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes } from 'react-icons/fa'
 import Modal from '../../components/Modal'
-import StatusPill from '../../components/StatusPill'
-
-const CATEGORIES = ['tech', 'fashion', 'home', 'beauty', 'sports']
+import ImageUpload from '../../components/ImageUpload'
 
 export default function Products() {
   const { formatPrice } = useSettings()
-  const [products, setProducts]   = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [search, setSearch]       = useState('')
-  const [catFilter, setCat]       = useState('')
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState(null)
-  const [formData, setFormData]   = useState({
-    name: '', price: '', original_price: '', emoji: '', category: 'tech',
-    rating: '★★★★★', badge: '', stock: 0, description: '',
-    images: [''],
+  const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [uploadMethod, setUploadMethod] = useState('url') // 'url' or 'upload'
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    category: '',
+    description: '',
+    price: 0,
+    original_price: 0,
+    stock: 0,
+    emoji: '📦',
+    image_url: '',
+    images: [],
+    badge: '',
+    rating: 0,
   })
-  const [saving, setSaving]     = useState(false)
-  const [deleting, setDeleting] = useState(null)
 
   useEffect(() => {
     loadProducts()
@@ -37,210 +43,205 @@ export default function Products() {
     }
   }
 
-  const filtered = products.filter(p => {
-    const matchQ = !search || p.name.toLowerCase().includes(search.toLowerCase())
-    const matchC = !catFilter || p.category.toLowerCase() === catFilter.toLowerCase()
-    return matchQ && matchC
-  })
+  function set(key) {
+    return (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }))
+  }
 
   function openAddModal() {
     setEditingId(null)
     setFormData({
-      name: '', price: '', original_price: '', emoji: '', category: 'tech',
-      rating: '★★★★★', badge: '', stock: 0, description: '',
-      images: [''],
+      name: '',
+      category: '',
+      description: '',
+      price: 0,
+      original_price: 0,
+      stock: 0,
+      emoji: '📦',
+      image_url: '',
+      images: [],
+      badge: '',
+      rating: 0,
     })
+    setUploadMethod('url')
     setShowModal(true)
   }
 
   function openEditModal(product) {
     setEditingId(product.id)
     setFormData({
-      name: product.name,
-      price: product.price,
-      original_price: product.original_price || '',
-      emoji: product.emoji || '',
-      category: product.category,
-      rating: product.rating || '★★★★★',
-      badge: product.badge || '',
-      stock: product.stock,
+      name: product.name || '',
+      category: product.category || '',
       description: product.description || '',
-      images: product.images && product.images.length > 0 ? product.images : [''],
+      price: product.price || 0,
+      original_price: product.original_price || 0,
+      stock: product.stock || 0,
+      emoji: product.emoji || '📦',
+      image_url: product.image_url || '',
+      images: product.images || [],
+      badge: product.badge || '',
+      rating: product.rating || 0,
     })
+    setUploadMethod(product.image_url ? 'url' : 'upload')
     setShowModal(true)
   }
 
-  async function handleSave() {
-    setSaving(true)
+async function handleSave() {
+  const data = {
+    ...formData,
+    price: parseFloat(formData.price),
+    original_price: parseFloat(formData.original_price),
+    stock: parseInt(formData.stock),
+    rating: parseFloat(formData.rating) || 0, // Ensure it's a number
+  }
+
+  try {
+    if (editingId) {
+      await updateProduct(editingId, data)
+    } else {
+      await createProduct(data)
+    }
+    await loadProducts()
+    setShowModal(false)
+  } catch (err) {
+    alert(err.message)
+  }
+}
+  async function handleDelete(id) {
+    if (!confirm('Delete this product?')) return
     try {
-      // Filter out empty image URLs
-      const imageUrls = formData.images.filter(url => url.trim() !== '')
-
-      const data = {
-        name: formData.name,
-        price: parseFloat(formData.price),
-        original_price: formData.original_price ? parseFloat(formData.original_price) : null,
-        emoji: formData.emoji,
-        category: formData.category,
-        rating: formData.rating,
-        badge: formData.badge || null,
-        stock: parseInt(formData.stock),
-        description: formData.description,
-        images: imageUrls.length > 0 ? imageUrls : null,
-        image_url: imageUrls.length > 0 ? imageUrls[0] : null, // Keep for backward compatibility
-      }
-
-      if (editingId) {
-        await updateProduct(editingId, data)
-      } else {
-        await createProduct(data)
-      }
-
+      await deleteProduct(id)
       await loadProducts()
-      setShowModal(false)
     } catch (err) {
-      alert('Error: ' + err.message)
-    } finally {
-      setSaving(false)
+      alert(err.message)
     }
   }
 
-  async function handleDelete(productId) {
-    if (!confirm('Delete this product? This cannot be undone.')) return
-    setDeleting(productId)
-    try {
-      await deleteProduct(productId)
-      await loadProducts()
-    } catch (err) {
-      alert('Error: ' + err.message)
-    } finally {
-      setDeleting(null)
-    }
+  function handleImageUpload(url) {
+    setFormData(prev => ({ ...prev, image_url: url }))
   }
 
-  function set(key) {
-    return (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }))
-  }
-
-  function addImageField() {
-    setFormData(prev => ({ ...prev, images: [...prev.images, ''] }))
-  }
-
-  function updateImage(index, value) {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.map((img, i) => i === index ? value : img)
-    }))
-  }
-
-  function removeImage(index) {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }))
-  }
+  const categories = [...new Set(products.map(p => p.category))].filter(Boolean)
+  const filtered = products.filter(p => {
+    const matchesSearch = p.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter
+    return matchesSearch && matchesCategory
+  })
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <h2 className="font-display text-xl font-semibold">Products</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="font-display text-2xl font-bold">Products</h1>
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:opacity-85 transition-opacity"
+          className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg hover:bg-accent transition-colors"
         >
           <FaPlus /> Add Product
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4">
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search products..."
-          className="flex-1 min-w-[180px] px-3 py-2 border border-border rounded-lg text-sm bg-surface outline-none focus:border-brand"
-        />
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1 relative">
+          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Search products..."
+            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+          />
+        </div>
         <select
-          value={catFilter}
-          onChange={e => setCat(e.target.value)}
-          className="px-3 py-2 border border-border rounded-lg text-sm bg-surface cursor-pointer outline-none"
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          className="px-4 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand bg-surface"
         >
-          <option value="">All Categories</option>
-          {CATEGORIES.map(c => (
-            <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+          <option value="all">All Categories</option>
+          {categories.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
       </div>
 
+      {/* Products Table */}
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs min-w-[700px]">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border">
-                {['', 'Product', 'Category', 'Price', 'Stock', 'Status', 'Actions'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-[11px] text-muted uppercase tracking-wide font-medium">{h}</th>
-                ))}
+              <tr className="border-b border-border bg-bg">
+                <th className="px-4 py-3 text-left text-xs text-muted uppercase tracking-wide font-medium">Product</th>
+                <th className="px-4 py-3 text-left text-xs text-muted uppercase tracking-wide font-medium">Category</th>
+                <th className="px-4 py-3 text-left text-xs text-muted uppercase tracking-wide font-medium">Price</th>
+                <th className="px-4 py-3 text-left text-xs text-muted uppercase tracking-wide font-medium">Stock</th>
+                <th className="px-4 py-3 text-left text-xs text-muted uppercase tracking-wide font-medium">Rating</th>
+                <th className="px-4 py-3 text-right text-xs text-muted uppercase tracking-wide font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-border">
-                    {Array.from({ length: 7 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-3 bg-[#f0ede8] rounded animate-pulse w-16" />
-                      </td>
-                    ))}
+                    <td className="px-4 py-3" colSpan={6}>
+                      <div className="h-4 bg-[#f0ede8] rounded animate-pulse" />
+                    </td>
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-muted text-sm">
-                    No products found.
-                  </td>
+                  <td colSpan={6} className="px-4 py-8 text-center text-muted">No products found</td>
                 </tr>
               ) : (
                 filtered.map(p => (
                   <tr key={p.id} className="border-b border-border last:border-0 hover:bg-bg/60 transition-colors">
                     <td className="px-4 py-3">
-                      {p.images?.[0] || p.image_url ? (
-                        <img src={p.images?.[0] || p.image_url} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-border" />
-                      ) : (
-                        <div className="w-10 h-10 bg-[#f9f8f6] rounded-lg flex items-center justify-center text-lg border border-border">
-                          {p.emoji}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-[#f9f8f6] rounded-lg flex items-center justify-center text-xl shrink-0">
+                          {p.images?.[0] || p.image_url ? (
+                            <img src={p.images?.[0] || p.image_url} alt={p.name} className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            p.emoji
+                          )}
                         </div>
-                      )}
+                        <div>
+                          <p className="font-medium">{p.name}</p>
+                          {p.badge && (
+                            <span className="text-xs px-2 py-0.5 bg-accent/10 text-accent rounded-full">{p.badge}</span>
+                          )}
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <p className="font-medium">{p.name}</p>
-                      <p className="text-[10px] text-muted">ID: {p.id}</p>
-                    </td>
-                    <td className="px-4 py-3 text-muted capitalize">{p.category}</td>
+                    <td className="px-4 py-3 text-muted">{p.category}</td>
                     <td className="px-4 py-3">
                       <p className="font-medium">{formatPrice(p.price)}</p>
                       {p.original_price && (
-                        <p className="text-[10px] text-muted line-through">{formatPrice(p.original_price)}</p>
+                        <p className="text-xs text-muted line-through">{formatPrice(p.original_price)}</p>
                       )}
                     </td>
-                    <td className={`px-4 py-3 font-medium ${p.stock < 15 ? 'text-red-500' : 'text-muted'}`}>
-                      {p.stock}
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        p.stock > 10 ? 'bg-green-100 text-green-700' : 
+                        p.stock > 0 ? 'bg-yellow-100 text-yellow-700' : 
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {p.stock} in stock
+                      </span>
+                    </td>
+                   <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <span className="text-yellow-500">★</span>
+                        <span>{(parseFloat(p.rating) || 0).toFixed(1)}</span>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
-                      <StatusPill status={p.stock > 0 ? 'Active' : 'Out of Stock'} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEditModal(p)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                          title="Edit"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         >
                           <FaEdit />
                         </button>
                         <button
                           onClick={() => handleDelete(p.id)}
-                          disabled={deleting === p.id}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                          title="Delete"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <FaTrash />
                         </button>
@@ -254,34 +255,37 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title={editingId ? 'Edit Product' : 'Add New Product'}
-      >
-        <div className="px-6 py-5 space-y-4">
+      {/* Product Modal */}
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editingId ? 'Edit Product' : 'Add Product'}>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs text-muted mb-1">Product Name *</label>
+            <input
+              value={formData.name}
+              onChange={set('name')}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+              placeholder="Premium Headphones"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-muted mb-1">Product Name *</label>
+              <label className="block text-xs text-muted mb-1">Category *</label>
               <input
-                value={formData.name}
-                onChange={set('name')}
+                value={formData.category}
+                onChange={set('category')}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                placeholder="Wireless Headphones"
+                placeholder="Electronics"
               />
             </div>
             <div>
-              <label className="block text-xs text-muted mb-1">Category *</label>
-              <select
-                value={formData.category}
-                onChange={set('category')}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand bg-surface"
-              >
-                {CATEGORIES.map(c => (
-                  <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-                ))}
-              </select>
+              <label className="block text-xs text-muted mb-1">Emoji</label>
+              <input
+                value={formData.emoji}
+                onChange={set('emoji')}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                placeholder="🎧"
+              />
             </div>
           </div>
 
@@ -292,33 +296,34 @@ export default function Products() {
               onChange={set('description')}
               rows={3}
               className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand resize-none"
-              placeholder="Detailed product description..."
+              placeholder="Product description..."
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-muted mb-1">Price ($) *</label>
+              <label className="block text-xs text-muted mb-1">Price *</label>
               <input
                 type="number"
                 step="0.01"
                 value={formData.price}
                 onChange={set('price')}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                placeholder="99.99"
               />
             </div>
             <div>
-              <label className="block text-xs text-muted mb-1">Original Price ($)</label>
+              <label className="block text-xs text-muted mb-1">Original Price</label>
               <input
                 type="number"
                 step="0.01"
                 value={formData.original_price}
                 onChange={set('original_price')}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                placeholder="129.99"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-muted mb-1">Stock *</label>
               <input
@@ -326,97 +331,83 @@ export default function Products() {
                 value={formData.stock}
                 onChange={set('stock')}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                placeholder="50"
               />
             </div>
-          </div>
-
-          {/* Product Images */}
-          <div>
-            <label className="block text-xs text-muted mb-2 flex items-center justify-between">
-              <span>Product Images</span>
-              <button
-                type="button"
-                onClick={addImageField}
-                className="text-xs text-accent hover:underline flex items-center gap-1"
-              >
-                <FaImage /> Add Image
-              </button>
-            </label>
-            <div className="space-y-2">
-              {formData.images.map((img, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    value={img}
-                    onChange={e => updateImage(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                    placeholder="https://images.unsplash.com/photo-..."
-                  />
-                  {formData.images.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <FaTimes />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-muted mt-2">Tip: Use Unsplash or other image CDN URLs</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-muted mb-1">Emoji</label>
+              <label className="block text-xs text-muted mb-1">Rating (0-5)</label>
               <input
-                value={formData.emoji}
-                onChange={set('emoji')}
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                value={formData.rating}
+                onChange={set('rating')}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                placeholder="🎧"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-muted mb-1">Badge</label>
-              <select
-                value={formData.badge}
-                onChange={set('badge')}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand bg-surface"
-              >
-                <option value="">None</option>
-                <option value="sale">Sale</option>
-                <option value="new">New</option>
-              </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs text-muted mb-1">Rating</label>
-            <select
-              value={formData.rating}
-              onChange={set('rating')}
-              className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand bg-surface"
-            >
-              <option value="★★★★★">★★★★★ (5 stars)</option>
-              <option value="★★★★☆">★★★★☆ (4 stars)</option>
-              <option value="★★★☆☆">★★★☆☆ (3 stars)</option>
-              <option value="★★☆☆☆">★★☆☆☆ (2 stars)</option>
-              <option value="★☆☆☆☆">★☆☆☆☆ (1 star)</option>
-            </select>
+            <label className="block text-xs text-muted mb-1">Badge</label>
+            <input
+              value={formData.badge}
+              onChange={set('badge')}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+              placeholder="New Arrival, Best Seller, etc."
+            />
+          </div>
+
+          {/* Image Upload Method Toggle */}
+          <div>
+            <label className="block text-xs text-muted mb-2">Product Image</label>
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => setUploadMethod('url')}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  uploadMethod === 'url' 
+                    ? 'bg-brand text-white' 
+                    : 'bg-surface border border-border text-muted hover:border-brand'
+                }`}
+              >
+                Image URL
+              </button>
+              <button
+                onClick={() => setUploadMethod('upload')}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  uploadMethod === 'upload' 
+                    ? 'bg-brand text-white' 
+                    : 'bg-surface border border-border text-muted hover:border-brand'
+                }`}
+              >
+                Upload Image
+              </button>
+            </div>
+
+            {uploadMethod === 'url' ? (
+              <input
+                value={formData.image_url}
+                onChange={set('image_url')}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                placeholder="https://example.com/image.jpg"
+              />
+            ) : (
+              <ImageUpload 
+                onUploadComplete={handleImageUpload}
+                existingUrl={formData.image_url}
+              />
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">
             <button
               onClick={handleSave}
-              disabled={saving || !formData.name || !formData.price}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand text-white rounded-xl font-medium hover:bg-accent transition-colors disabled:opacity-50"
+              className="flex-1 py-2 bg-brand text-white rounded-lg hover:bg-accent transition-colors"
             >
-              <FaSave /> {saving ? 'Saving...' : editingId ? 'Update Product' : 'Create Product'}
+              {editingId ? 'Update' : 'Create'}
             </button>
             <button
               onClick={() => setShowModal(false)}
-              className="px-6 py-3 border border-border rounded-xl font-medium hover:bg-bg transition-colors"
+              className="flex-1 py-2 border border-border rounded-lg hover:bg-bg transition-colors"
             >
               Cancel
             </button>
