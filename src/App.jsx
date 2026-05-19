@@ -36,19 +36,58 @@ function AppContent() {
   const [appliedPromo, setAppliedPromo] = useState({ code: '', discount: 0 })
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
+      if (session?.user) {
+        await handleGoogleAuthUser(session.user)
+      }
       setLoading(false)
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
+      if (session?.user) {
+        await handleGoogleAuthUser(session.user)
+      }
     })
 
     return () => subscription.unsubscribe()
   }, [])
+
+  async function handleGoogleAuthUser(user) {
+    const { data: existingCustomer } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+
+    if (!existingCustomer) {
+      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+      const nameParts = fullName.split(' ')
+      const firstName = nameParts[0] || 'User'
+      const lastName = nameParts[nameParts.length - 1] || 'Name'
+      const initials = `${firstName[0]}${lastName[0]}`.toUpperCase()
+      const colors = ['#1a1a2e', '#e94560', '#f5a623', '#16a34a', '#7c3aed', '#0891b2', '#db2777']
+      const randomColor = colors[Math.floor(Math.random() * colors.length)]
+
+      const { error } = await supabase
+        .from('customers')
+        .insert({
+          id: user.id,
+          name: fullName,
+          email: user.email,
+          initials,
+          color: randomColor,
+          joined: new Date().toISOString(),
+          status: 'Active',
+          role: 'customer',
+        })
+
+      if (error) {
+        console.error('Failed to create customer record:', error)
+      }
+    }
+  }
 
   // Apply appearance settings dynamically
   useEffect(() => {

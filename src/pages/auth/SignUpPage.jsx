@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { FaUser, FaEnvelope, FaLock, FaSpinner } from 'react-icons/fa'
+import { FaUser, FaEnvelope, FaLock, FaSpinner, FaGoogle } from 'react-icons/fa'
 
 export default function SignUpPage() {
   const navigate = useNavigate()
@@ -40,41 +40,60 @@ export default function SignUpPage() {
       if (!authData.user) throw new Error('Failed to create user')
 
       // Create customer record
-      const initials = `${formData.firstName[0]}${formData.lastName[0]}`.toUpperCase()
-      const colors = ['#1a1a2e', '#e94560', '#f5a623', '#16a34a', '#7c3aed', '#0891b2', '#db2777']
-      const randomColor = colors[Math.floor(Math.random() * colors.length)]
+      await createCustomerRecord(authData.user)
 
-      const { data: existingCustomer } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('id', authData.user.id)
-        .single()
-
-      if (!existingCustomer) {
-        const { error: customerError } = await supabase
-          .from('customers')
-          .insert({
-            id: authData.user.id,
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            initials,
-            color: randomColor,
-            joined: new Date().toISOString(),
-            status: 'Active',
-            role: 'customer',
-          })
-
-        if (customerError) {
-          console.error('Failed to create customer record:', customerError)
-        }
-      }
-
-      // Navigate to store on success
       navigate('/store')
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleGoogleSignUp() {
+    try {
+      setError(null)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/store`,
+        }
+      })
+
+      if (error) throw error
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  async function createCustomerRecord(user) {
+    const initials = `${formData.firstName[0]}${formData.lastName[0]}`.toUpperCase()
+    const colors = ['#1a1a2e', '#e94560', '#f5a623', '#16a34a', '#7c3aed', '#0891b2', '#db2777']
+    const randomColor = colors[Math.floor(Math.random() * colors.length)]
+
+    const { data: existingCustomer } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+
+    if (!existingCustomer) {
+      const { error: customerError } = await supabase
+        .from('customers')
+        .insert({
+          id: user.id,
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          initials,
+          color: randomColor,
+          joined: new Date().toISOString(),
+          status: 'Active',
+          role: 'customer',
+        })
+
+      if (customerError) {
+        console.error('Failed to create customer record:', customerError)
+      }
     }
   }
 
@@ -87,6 +106,26 @@ export default function SignUpPage() {
         </div>
 
         <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 shadow-lg">
+          
+          {/* Google Sign Up Button */}
+          <button
+            onClick={handleGoogleSignUp}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 border-2 border-border rounded-xl font-medium hover:bg-bg transition-colors mb-6"
+          >
+            <FaGoogle className="text-xl text-red-500" />
+            <span>Continue with Google</span>
+          </button>
+
+          {/* Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-surface text-muted">Or sign up with email</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSignUp} className="space-y-5">
             {error && (
               <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">

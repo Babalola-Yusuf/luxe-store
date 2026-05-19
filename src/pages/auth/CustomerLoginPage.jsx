@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
-import { FaEnvelope, FaLock, FaSpinner } from 'react-icons/fa'
+import { FaEnvelope, FaLock, FaSpinner, FaGoogle } from 'react-icons/fa'
 
 export default function CustomerLoginPage() {
   const navigate = useNavigate()
@@ -23,12 +23,27 @@ export default function CustomerLoginPage() {
 
       if (error) throw error
 
-      // Navigate to my orders on success
       navigate('/my-orders')
     } catch (err) {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    try {
+      setError(null)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/my-orders`,
+        },
+      })
+
+      if (error) throw error
+    } catch (err) {
+      setError(err.message)
     }
   }
 
@@ -41,6 +56,23 @@ export default function CustomerLoginPage() {
         </div>
 
         <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 shadow-lg">
+          <button
+            onClick={handleGoogleSignIn}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 border-2 border-border rounded-xl font-medium hover:bg-bg transition-colors mb-6"
+          >
+            <FaGoogle className="text-xl text-red-500" />
+            <span>Continue with Google</span>
+          </button>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-surface text-muted">Or continue with email</span>
+            </div>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-5">
             {error && (
               <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
