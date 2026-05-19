@@ -3,6 +3,7 @@ import { fetchSettings, updateSetting, fetchPromoCodes, createPromoCode, deleteP
 import { FaSave, FaPlus, FaTrash, FaCheck, FaTimes } from 'react-icons/fa'
 import Modal from '../../components/Modal'
 import { useSettings as useSettingsContext } from '../../context/SettingsContext'
+import StoreAssetUpload from '../../components/StoreAssetUpload'
 
 export default function Settings() {
   const { refreshSettings, getCurrencySymbol } = useSettingsContext()
@@ -10,6 +11,8 @@ export default function Settings() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(null)
   const [activeTab, setActiveTab] = useState('general')
+  const [logoUploadMethod, setLogoUploadMethod] = useState('url')
+  const [faviconUploadMethod, setFaviconUploadMethod] = useState('url')
   const [promoCodes, setPromoCodes] = useState([])
   const [showPromoModal, setShowPromoModal] = useState(false)
   const [promoForm, setPromoForm] = useState({
@@ -79,6 +82,14 @@ export default function Settings() {
         [field]: value,
       },
     }))
+  }
+
+  function handleLogoUpload(url) {
+    updateField('appearance', 'logo', url)
+  }
+
+  function handleFaviconUpload(url) {
+    updateField('appearance', 'favicon', url)
   }
 
   async function handleCreatePromo() {
@@ -542,49 +553,120 @@ export default function Settings() {
       {activeTab === 'appearance' && settings.appearance && (
         <div className="bg-surface rounded-xl border border-border p-6">
           <h3 className="font-semibold mb-4">Appearance</h3>
-          <div className="space-y-4 max-w-2xl">
+          <div className="space-y-6 max-w-2xl">
             <div>
-              <label className="block text-xs text-muted mb-1">Logo URL</label>
-              <input
-                value={settings.appearance.logo || ''}
-                onChange={e => updateField('appearance', 'logo', e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                placeholder="https://example.com/logo.png"
-              />
-              {settings.appearance.logo && (
-                <div className="mt-2 p-3 bg-bg rounded-lg border border-border">
-                  <p className="text-xs text-muted mb-2">Preview:</p>
-                  <img
-                    src={settings.appearance.logo}
-                    alt="Logo preview"
-                    className="h-10 w-auto"
-                    onError={(e) => { e.target.style.display = 'none' }}
+              <label className="block text-xs text-muted mb-2">Store Logo</label>
+
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => setLogoUploadMethod('url')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    logoUploadMethod === 'url'
+                      ? 'bg-brand text-white'
+                      : 'bg-surface border border-border text-muted hover:border-brand'
+                  }`}
+                >
+                  Image URL
+                </button>
+                <button
+                  onClick={() => setLogoUploadMethod('upload')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    logoUploadMethod === 'upload'
+                      ? 'bg-brand text-white'
+                      : 'bg-surface border border-border text-muted hover:border-brand'
+                  }`}
+                >
+                  Upload Image
+                </button>
+              </div>
+
+              {logoUploadMethod === 'url' ? (
+                <div>
+                  <input
+                    value={settings.appearance.logo || ''}
+                    onChange={e => updateField('appearance', 'logo', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                    placeholder="https://example.com/logo.png"
                   />
+                  {settings.appearance.logo && (
+                    <div className="mt-3 p-3 bg-bg rounded-lg border border-border">
+                      <p className="text-xs text-muted mb-2">Preview:</p>
+                      <img
+                        src={settings.appearance.logo}
+                        alt="Logo preview"
+                        className="h-12 w-auto"
+                        onError={(e) => { e.target.style.display = 'none' }}
+                      />
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <StoreAssetUpload
+                  assetType="logo"
+                  onUploadComplete={handleLogoUpload}
+                  existingUrl={settings.appearance.logo}
+                />
               )}
+              <p className="text-xs text-muted mt-2">
+                Recommended: PNG or SVG, max 200px height
+              </p>
             </div>
 
             <div>
-              <label className="block text-xs text-muted mb-1">Favicon URL</label>
-              <input
-                value={settings.appearance.favicon || ''}
-                onChange={e => updateField('appearance', 'favicon', e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
-                placeholder="https://example.com/favicon.ico"
-              />
-              {settings.appearance.favicon && (
-                <div className="mt-2 p-3 bg-bg rounded-lg border border-border">
-                  <p className="text-xs text-muted mb-2">Preview:</p>
-                  <img
-                    src={settings.appearance.favicon}
-                    alt="Favicon preview"
-                    className="h-8 w-8"
-                    onError={(e) => { e.target.style.display = 'none' }}
+              <label className="block text-xs text-muted mb-2">Favicon</label>
+
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => setFaviconUploadMethod('url')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    faviconUploadMethod === 'url'
+                      ? 'bg-brand text-white'
+                      : 'bg-surface border border-border text-muted hover:border-brand'
+                  }`}
+                >
+                  Image URL
+                </button>
+                <button
+                  onClick={() => setFaviconUploadMethod('upload')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    faviconUploadMethod === 'upload'
+                      ? 'bg-brand text-white'
+                      : 'bg-surface border border-border text-muted hover:border-brand'
+                  }`}
+                >
+                  Upload Image
+                </button>
+              </div>
+
+              {faviconUploadMethod === 'url' ? (
+                <div>
+                  <input
+                    value={settings.appearance.favicon || ''}
+                    onChange={e => updateField('appearance', 'favicon', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-brand"
+                    placeholder="https://example.com/favicon.ico"
                   />
+                  {settings.appearance.favicon && (
+                    <div className="mt-3 p-3 bg-bg rounded-lg border border-border">
+                      <p className="text-xs text-muted mb-2">Preview:</p>
+                      <img
+                        src={settings.appearance.favicon}
+                        alt="Favicon preview"
+                        className="h-8 w-8"
+                        onError={(e) => { e.target.style.display = 'none' }}
+                      />
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <StoreAssetUpload
+                  assetType="favicon"
+                  onUploadComplete={handleFaviconUpload}
+                  existingUrl={settings.appearance.favicon}
+                />
               )}
               <p className="text-xs text-muted mt-2">
-                Recommended: 32x32 pixels or 64x64 pixels, .ico or .png format
+                Recommended: 32x32 or 64x64 pixels, .ico or .png format
               </p>
             </div>
 

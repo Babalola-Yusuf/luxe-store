@@ -279,22 +279,38 @@ export async function validatePromoCode(code) {
   const { data, error } = await supabase
     .from('promo_codes')
     .select('*')
-    .eq('code', code.toUpperCase())
+    .eq('code', code.toUpperCase().trim())
     .single()
 
-  if (error || !data) throw new Error('Invalid promo code')
+  if (error) {
+    console.error('Promo code error:', error)
+    return { valid: false }
+  }
+
+  if (!data) {
+    return { valid: false }
+  }
 
   // Check if expired
-  if (data.expires_at && new Date(data.expires_at) < new Date()) {
-    throw new Error('Promo code has expired')
+  if (data.expires_at) {
+    const expiryDate = new Date(data.expires_at)
+    const now = new Date()
+    if (expiryDate < now) {
+      return { valid: false, message: 'Promo code has expired' }
+    }
   }
 
-  // Check max uses
+  // Check if max uses reached
   if (data.max_uses && data.times_used >= data.max_uses) {
-    throw new Error('Promo code limit reached')
+    return { valid: false, message: 'Promo code has reached maximum uses' }
   }
 
-  return data
+  return {
+    valid: true,
+    code: data.code,
+    discount_percent: data.discount_percent || 0,
+    discount_amount: data.discount_amount || 0,
+  }
 }
 
 export async function incrementPromoUse(code) {

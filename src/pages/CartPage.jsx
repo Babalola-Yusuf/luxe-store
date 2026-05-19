@@ -33,25 +33,42 @@ export default function CartPage({ setAppliedPromo }) {
   }
 
   async function applyPromo() {
-    if (!promoCode.trim()) return
+    const trimmedCode = promoCode.trim().toUpperCase()
+
+    console.log('Applying promo code:', trimmedCode)
+
+    if (!trimmedCode) {
+      setPromoError('Please enter a promo code')
+      return
+    }
     
     setPromoError('')
     setPromoSuccess('')
 
     try {
-      const result = await validatePromoCode(promoCode)
+      const result = await validatePromoCode(trimmedCode)
+
+      console.log('Promo validation result:', result)
+
       if (result.valid) {
         const discount = result.discount_percent 
           ? (subtotal * result.discount_percent / 100)
           : (result.discount_amount || 0)
+
+        console.log('Calculated discount:', discount)
         
         setPromoDiscount(discount)
+        setPromoCode(trimmedCode)
         setPromoSuccess(`Promo code applied! You saved ${formatPrice(discount)}`)
       } else {
-        setPromoError('Invalid or expired promo code')
+        console.log('Promo code invalid:', result.message)
+        setPromoError(result.message || 'Invalid or expired promo code')
+        setPromoDiscount(0)
       }
     } catch (err) {
+      console.error('Promo validation error:', err)
       setPromoError('Failed to validate promo code')
+      setPromoDiscount(0)
     }
   }
 
