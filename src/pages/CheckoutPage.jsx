@@ -108,11 +108,11 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
     }
   }
 
-  const handlePaystackSuccess = (reference) => {
+  const handlePaystackSuccess = async (reference) => {
     console.log('Payment successful:', reference)
     
     // Update order status
-    fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paystack-webhook`, {
+    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/paystack-webhook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -124,6 +124,38 @@ export default function CheckoutPage({ setOrderId, appliedPromo }) {
         }
       })
     })
+
+    try {
+      await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-order-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            orderId: currentOrderId,
+            customerEmail: formData.email,
+            customerName: `${formData.firstName} ${formData.lastName}`,
+            items: items.map(([id, qty]) => {
+              const product = products.find(p => p.id === Number(id))
+              return {
+                name: product?.name || 'Product',
+                emoji: product?.emoji,
+                quantity: qty,
+                price: product?.price || 0,
+              }
+            }),
+            total,
+            shippingAddress: `${formData.firstName} ${formData.lastName}\n${formData.address}\n${formData.city}, ${formData.state}\n${formData.country}\nPhone: ${formData.phone}`,
+            currency: settings.general?.currency === 'NGN' ? '₦' : '$',
+          }),
+        }
+      )
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError)
+    }
 
     clearCart()
     if (setOrderId) setOrderId(currentOrderId)
